@@ -1,0 +1,3070 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Works</title>
+  
+  <!-- 引入字体 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Special Elite 字体 (英文标题) -->
+  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet">
+  <!-- AR One Sans 字体 (导航栏) -->
+  <link href="https://fonts.googleapis.com/css2?family=AR+One+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <!-- 思源黑体香港 / Noto Sans HK (中文) -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@300;400;700&display=swap" rel="stylesheet">
+  <!-- Source Code Pro -->
+  <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- 引入 P5.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+  
+  <style>
+    /* ================= 基础样式 ================= */
+    :root {
+      --bg-color: #F2F2F1;
+      --text-color: #000000;
+      --muted-color: #666666;
+      --border-color: #DDDDDD;
+      --font-main: "Special Elite", "Noto Sans HK", "Source Han Sans SC", "Source Han Sans", sans-serif;
+      --font-code: "AR One Sans", sans-serif;
+      --font-chinese: "Noto Sans HK", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: var(--font-main);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    a {
+      color: var(--text-color);
+      text-decoration: none;
+      position: relative;
+    }
+    
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* ================= 布局容器 ================= */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 20; /* 提高整个容器的层级，确保内容在 Gallery 之上 */
+      pointer-events: none; /* 让容器本身不阻挡点击 */
+    }
+    
+    /* 恢复导航栏交互 */
+    .nav-links {
+      pointer-events: auto;
+    }
+    
+    /* 恢复标题交互（可选中文本） */
+    .page-title {
+      pointer-events: auto;
+    }
+    
+    /* 恢复副标题交互 */
+    .subtitle {
+      pointer-events: auto;
+    }
+    
+    /* 确保 spacer 不阻挡点击 */
+    .canvas-spacer {
+      pointer-events: none;
+    }
+
+    /* ================= 顶部导航 ================= */
+    header {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      padding-top: 10px;
+      margin-bottom: 20px;
+      position: relative;
+      /* z-index: 20;  已在 container 中统一提高层级 */
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 30px;
+      font-size: 14px;
+      color: #999;
+      margin: 0;
+      font-family: var(--font-code);
+    }
+    
+    .nav-links a { 
+      color: #999; 
+      transition: all 0.2s ease;
+      display: inline-block;
+      text-decoration: none;
+      transform-origin: bottom center; /* 旋转轴在底部 */
+    }
+    .nav-links a:hover { 
+      color: #333; 
+    }
+    .nav-links a:active {
+      color: #ccc; /* 颜色变浅 */
+      text-shadow: none;
+      transform: perspective(500px) rotateX(60deg) skewX(-15deg); /* 向斜后方倾倒 */
+    }
+
+    /* ================= 页面标题 ================= */
+    .page-title {
+      font-size: 48px;
+      font-weight: bold;
+      letter-spacing: -1px;
+      margin-bottom: 0px;
+      font-family: var(--font-main);
+      position: relative;
+      z-index: 10;
+    }
+
+    /* ================= P5.js Canvas 容器 ================= */
+    .canvas-container {
+      position: absolute;
+      top: 40px;
+      left: 0;
+      width: 100vw;
+      z-index: 0;
+    }
+
+    #p5-canvas {
+      width: 100% !important;
+      height: auto !important;
+      display: block;
+      cursor: pointer;
+    }
+    
+    /* 内容区域 */
+    .content-wrapper {
+      position: relative;
+      z-index: 1;
+      pointer-events: none;
+    }
+    
+    /* 删除暴力的通配符恢复，改为按需恢复 */
+    /* .content-wrapper * {
+      pointer-events: auto;
+    } */
+    
+    /* 确保 spacer 不阻挡点击 */
+    .canvas-spacer {
+      pointer-events: none;
+    }
+
+    /* Canvas 占位空间 */
+    .canvas-spacer {
+      width: 100%;
+      padding-top: 48.67%; /* 623/1280 = 0.4867 保持原始比例 */
+      margin-top: 105px;
+    }
+
+    /* ================= 图片展示区域 ================= */
+    .gallery-container {
+      position: absolute; /* 从 fixed 改为 absolute，使其随页面滚动 */
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100%; /* 覆盖整个文档高度 */
+      z-index: 5;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .gallery-container.show {
+      pointer-events: auto;
+    }
+
+    /* Graphic Design 网格布局 */
+    .gallery-container#graphicDesignGallery {
+      display: flex;
+      flex-wrap: nowrap; /* 不换行 */
+      justify-content: space-between; /* 自动布局图片间距 */
+      align-items: flex-start; /* 顶部对齐 */
+      gap: 10px; /* 最小间距，主要由justify-content控制 */
+      padding-top: 40px; /* 增加顶部内边距，确保图钉完整显示 */
+      padding-left: 80px; /* 增加左侧间距 */
+      padding-right: 80px; /* 增加右侧间距 */
+      padding-bottom: 0;
+      overflow-x: hidden; /* 取消横向滚动 */
+      opacity: 0; /* 默认隐藏，由 JS 控制 display 和 opacity */
+      position: absolute; 
+      width: 100%;
+      left: 0;
+      pointer-events: none; /* 默认不响应点击，由 .show 类控制 */
+    }
+
+    .gallery-container#graphicDesignGallery.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    
+    /* 定义升起动画 */
+    @keyframes slideUpFadeIn {
+      0% {
+        opacity: 0;
+        transform: translateY(100px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* 当容器被悬停时，所有内部item透明度降低 */
+    .gallery-container#graphicDesignGallery.show:hover .gallery-item.graphic-design {
+      opacity: 0.6 !important; /* 强制覆盖动画结束后的 opacity */
+      transition: opacity 0.3s ease;
+    }
+    
+    /* 当某个特定item被悬停时，恢复其透明度为1 */
+    .gallery-container#graphicDesignGallery.show .gallery-item.graphic-design:hover {
+      opacity: 1 !important;
+    }
+
+    .gallery-item {
+      position: relative;
+      cursor: pointer;
+    }
+
+    /* Graphic Design 图片样式 */
+    .gallery-item.graphic-design {
+      width: 12.5%; /* 7个图片，留出空间自动调整间距 */
+      flex: 0 0 auto; /* 不自动拉伸 */
+      min-width: 0; /* 允许 flex item 缩小 */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative; /* 确保图钉相对于item定位 */
+      height: 100%; /* 占满高度 */
+      opacity: 0; /* 初始隐藏，等待动画 */
+      transform: translateY(100px); /* 初始位置下沉 */
+    }
+
+    /* 当容器显示时，触发动画 */
+    .gallery-container#graphicDesignGallery.show .gallery-item.graphic-design {
+      animation: slideUpFadeIn 0.8s cubic-bezier(0.2, 0.8, 0.8, 1) forwards;
+    }
+
+    .gallery-item.graphic-design .image-wrapper {
+      width: 100%;
+      overflow: hidden; /* 隐藏超出容器高度的内容 */
+      position: relative;
+      height: 100%;
+    }
+    
+    /* 长图底部内阴影 */
+    .gallery-item.graphic-design.long-image .image-wrapper::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 18px; /* 增加高度 */
+      background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.4)); /* 加深颜色 */
+      pointer-events: none;
+      z-index: 10; /* 提高层级 */
+    }
+
+    .gallery-item.graphic-design img {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      display: block;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transition: transform 0.5s ease;
+      object-position: top center; /* 确保从顶部开始显示 */
+    }
+    
+    /* 移除之前的动画相关样式 */
+    /*
+    .gallery-item.graphic-design.long-image:hover img {
+      animation: scrollUp 2s ease-in-out infinite alternate;
+    }
+    
+    @keyframes scrollUp {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-10%); } 
+    }
+    */
+
+    /* Graphic Design 图钉样式 */
+    .gallery-item.graphic-design .pin {
+      width: 15%; /* 宽度与图片宽度比例 0.2:1 */
+      height: auto; /* 保持宽高比 */
+      aspect-ratio: 1/1; /* 假设图钉接近正方形，或者自适应 */
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translate(-50%, -50%); /* 中心位置在图片上边缘的居中位置 */
+      z-index: 20; /* 确保在图片之上 */
+      box-shadow: none !important;
+    }
+    
+    .gallery-item.graphic-design .pin img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: none;
+      box-shadow: none !important;
+    }
+
+    /* Visual Display 随机分布样式 */
+    .gallery-container#visualDisplayGallery {
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+
+    .gallery-container#visualDisplayGallery.show {
+      opacity: 1;
+    }
+
+    /* Visual Display 动画相关 CSS */
+    .gallery-item.visual-display {
+      position: absolute;
+      cursor: pointer;
+      /* 初始状态：位置由JS设置 */
+      z-index: 10;
+      /* 默认 transition */
+      transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                  left 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                  top 0.8s cubic-bezier(0.34, 1.56, 0.64, 1),
+                  opacity 0.5s ease;
+    }
+
+    /* 图钉初始隐藏 */
+    .gallery-item.visual-display .pin {
+      width: 20%;
+      height: auto;
+      aspect-ratio: 1/1;
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 20;
+      opacity: 0; /* 初始不可见 */
+      transition: opacity 0.3s ease; /* 简单渐显 */
+    }
+    
+    /* 图钉钉入状态 */
+    .gallery-item.visual-display .pin.pinned {
+      opacity: 1;
+    }
+
+    .gallery-item.visual-display img {
+      max-width: 150px; /* 图片缩小 */
+      max-height: 180px;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: block;
+      transition: box-shadow 0.3s ease;
+    }
+    
+    .gallery-item.visual-display:hover {
+      z-index: 50 !important; /* 悬停时置顶 */
+    }
+    
+    .gallery-item.visual-display:hover img {
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+    
+    .gallery-item.visual-display .pin img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    /* 图钉通用样式 - 这里只作为基础，具体样式在各自的类中定义 */
+    .pin {
+      pointer-events: none;
+    }
+
+    /* 弹出窗口样式 */
+    .image-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden; /* 防止body滚动 */
+    }
+
+    .image-modal.show {
+      display: flex;
+    }
+
+    .modal-backdrop {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      cursor: pointer;
+    }
+
+    .modal-content {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      z-index: 1001;
+      overflow: auto; /* 允许内容滚动 */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content img {
+      max-width: 90vw;
+      max-height: 90vh;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+      /* 移除 transition，因为鼠标滚轮缩放需要实时响应 */
+      /* transition: transform 0.3s ease, width 0.3s ease; */
+      cursor: grab; /* 默认手型 */
+    }
+    
+    .modal-content img:active {
+      cursor: grabbing; /* 拖拽时抓手 */
+    }
+    
+    /* 移除之前的 zoomed 类样式，因为现在使用 transform: scale() 控制 */
+    /*
+    .modal-content img.zoomed-1-2x { ... }
+    .modal-content img.zoomed-2x { ... }
+    */
+
+    /* ================= 底部 Footer ================= */
+    footer{
+      border-top:1px solid rgba(0,0,0,0.08);
+      margin-top:24px;
+    }
+    .footer-inner{
+      max-width:1200px;
+      margin:0 auto;
+      padding:18px 24px 28px;
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:12px;
+      font-size:13px; /* 12-14px */
+      color: #666666; /* 统一颜色 */
+      font-family: "AR One Sans", sans-serif; /* 统一字体 */
+    }
+    .footer-item b{
+      display:block;
+      font-weight:500;
+      margin-bottom:6px;
+      color: #666666; /* 统一颜色 */
+    }
+    .footer-item span {
+      opacity: 1; /* 统一透明度 */
+    }
+
+    /* ================= 响应式设计 ================= */
+    /* Tablet Landscape / Small Desktop adjustments */
+    @media (min-width: 481px) and (max-width: 1200px) {
+      .canvas-container {
+        position: absolute !important; /* Changed from fixed to absolute */
+        left: 0;
+        z-index: 0; /* Changed from -1 to 0 to be visible */
+        width: 100vw;
+      }
+      
+      /* Footer below the screen/waves */
+      footer {
+        position: relative; 
+        margin-top: 0;
+        z-index: 10;
+        width: 100%;
+      }
+      
+      /* Push footer below the fold */
+      .container {
+        min-height: 100vh; /* Occupy full viewport height */
+        display: flex;
+        flex-direction: column;
+        position: relative;
+      }
+      
+      /* Spacer logic handled by JS or min-height */
+      .canvas-spacer {
+        display: none; 
+      }
+    }
+
+    @media (max-width: 768px) {
+      .page-title {
+        font-size: 36px;
+      }
+      
+      .canvas-container {
+        margin-bottom: 40px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .nav-links {
+        gap: 20px;
+        font-size: 12px;
+      }
+      
+      .page-title {
+        font-size: 28px;
+      }
+      
+      .footer-inner{
+        grid-template-columns:1fr 1fr;
+        row-gap:16px;
+        font-size:12px;
+      }
+
+      /* 移动端 Graphic Design 改为三列布局 */
+      .gallery-container#graphicDesignGallery {
+        flex-wrap: wrap;
+        padding-left: 10px; 
+        padding-right: 10px;
+        justify-content: flex-start; /* 改为左对齐，配合gap自动换行 */
+        align-content: flex-start;
+        gap: 6px; /* 控制列间距 */
+        row-gap: 20px; /* 控制行间距，确保不拥挤但也不过远 */
+        overflow-y: auto; 
+        height: auto; 
+        position: absolute; 
+      }
+
+      .gallery-item.graphic-design {
+        /* calc((100% - (2 * gap)) / 3) 计算准确的三列宽度 */
+        width: calc((100% - 12px) / 3); 
+        margin-bottom: 0; /* 移除margin，完全靠 row-gap 控制 */
+        flex: 0 0 auto; /* 禁止伸缩 */
+        display: block; /* 移除flex布局，避免撑大点击区域 */
+        height: auto; /* 高度由内容撑开 */
+      }
+      
+      /* 限制图片高度，防止过长 */
+      .gallery-item.graphic-design .image-wrapper {
+        width: 100%;
+        max-height: 110px; 
+        overflow: hidden;
+        position: relative;
+        /* 确保wrapper紧贴图片 */
+        display: block;
+      }
+      
+      .gallery-item.graphic-design img {
+        height: 100%;
+        width: 100%;
+        object-fit: cover;
+        display: block; /* 消除inline-block缝隙 */
+      }
+      
+      /* 调整图钉 */
+      .gallery-item.graphic-design .pin {
+        width: 25%;
+      }
+      
+      .gallery-item.graphic-design img {
+        height: 100%;
+        object-fit: cover;
+      }
+      
+      /* Visual Display 图片缩小 */
+      .gallery-item.visual-display img {
+        max-width: 100px;
+        max-height: 120px;
+      }
+      
+      /* Social Media 调整 */
+      .gallery-container#socialMediaGallery {
+        position: relative;
+        top: 0 !important;
+        margin-top: 40px;
+        height: 60vh; /* 限制高度 */
+      }
+      
+      /* 初始状态禁止滚动，等待内容展示 */
+      body.locked-scroll {
+        overflow: hidden;
+      }
+      
+      /* Canvas 容器位置调整 - 放在底部 */
+      .canvas-container {
+        position: fixed;
+        top: auto;
+        bottom: 0; /* 距离底部 0，完全沉底 */
+        left: 0;
+        height: 500px !important; /* 高度调整为 500px */
+        z-index: 20; 
+        pointer-events: none; /* 让点击穿透，除非是波浪线本身 */
+      }
+      
+      #p5-canvas {
+        height: 100% !important;
+        width: 100% !important;
+        object-fit: cover; 
+        object-position: center bottom; /* 确保波浪线显示在底部 */
+        pointer-events: auto; /* 确保波浪线可交互 */
+      }
+      
+      /* Footer 固定在波浪线下方，即页面最底部 */
+      footer {
+        position: fixed;
+        bottom: 0; /* 紧贴底部 */
+        left: 0;
+        width: 100%;
+        z-index: 30; /* Ensure Footer is clickable (Above Canvas transparent area) */
+        background: transparent; 
+        border-top: none; 
+        margin-top: 0;
+        /* Adapt to safe area */
+        padding-bottom: max(10px, env(safe-area-inset-bottom)); 
+        
+        /* Scrollable Footer Implementation */
+        height: 60px; /* Show only top part (approx 30%) */
+        overflow-y: auto; /* Allow scrolling to see the rest */
+        overscroll-behavior: contain; /* Prevent scrolling parent */
+        /* Remove transform to allow internal scrolling */
+        transform: none !important;
+      }
+      
+      .footer-inner {
+        padding: 5px 24px 5px; /* Compact padding */
+      }
+      
+      /* 移动端内容区域需要给底部留出空间，防止被固定的 Footer 和 Canvas 遮挡 */
+      .gallery-container#graphicDesignGallery,
+      .gallery-container#visualDisplayGallery,
+      .gallery-container#socialMediaGallery {
+        padding-bottom: 20px !important; /* 底部内边距 */
+        top: 90px !important; /* 上移：从130px改为100px */
+        bottom: 220px !important; /* 底部留白给波浪线 */
+        height: auto !important; /* 高度由 top/bottom 决定 */
+        overflow-y: auto; /* 允许滚动 */
+        z-index: 25; /* 确保在 Canvas (z-index: 20) 之上，但在 Footer (z-index: 30) 之下 */
+      }
+
+      /* Graphic Design 显示修复 */
+      .gallery-container#graphicDesignGallery {
+        display: flex;
+        flex-wrap: wrap;
+        opacity: 1 !important; /* 强制不透明 */
+        visibility: visible !important;
+        pointer-events: auto !important;
+      }
+      
+      /* Removed conflicting .gallery-item.graphic-design block */
+      
+      /* Visual Display 图片容器加高 */
+      .gallery-item.visual-display img {
+        max-width: 85px; /* 缩小宽度 */
+        max-height: 110px; /* 缩小高度 */
+        width: auto;
+        height: auto;
+      }
+
+      /* Social Media 显示修复 */
+      .gallery-container#socialMediaGallery {
+        display: none; /* Default hidden */
+      }
+      
+      /* Mobile Font Adjustments */
+      .post-title {
+        font-size: 11px !important; /* Smaller title */
+        margin-right: 4px;
+      }
+      .post-date {
+        font-size: 9px !important;
+      }
+      .account-name {
+        font-size: 15px !important;
+        max-width: 180px;
+      }
+      .account-platform {
+        font-size: 9px !important;
+        padding: 1px 4px;
+      }
+      .page-content-wrapper {
+        padding: 30px 15px 15px 15px !important; /* Tighter padding, increased top */
+      }
+      
+      .post-stats {
+        font-size: 8px !important; /* Smaller stats text */
+      }
+      .stat-label {
+        font-size: 7px !important; /* Smaller labels */
+      }
+      
+      .gallery-container#socialMediaGallery.show {
+        display: flex !important; /* Restore flex for centering stage */
+        opacity: 1 !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+        
+        /* Mobile Adjustment: Lower top, restrict height */
+        overflow: visible !important; /* Allow Sort Bar to be seen outside */
+        /* top and height handled by JS now */
+        align-items: flex-start; /* Align to top of container */
+        justify-content: center;
+      }
+      
+      .accordion-stage {
+        height: 100% !important;
+        width: 100% !important;
+        display: flex !important;
+        perspective: 800px !important; /* Reduce perspective for mobile */
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .folder-page {
+        position: absolute !important; /* Restore absolute */
+        width: 44vw !important; /* 缩小宽度以同时显示两页 */
+        height: calc(100% - 25px) !important; /* 减去顶部偏移，保证底部位置不变 */
+        top: 25px !important; /* 下移避免顶部被容器裁切 */
+        max-height: none !important;
+        min-height: 0;
+        /* transform handled by JS */
+        margin-bottom: 0;
+        opacity: 1 !important;
+        background: #fff; 
+        border: 1px solid #eee;
+        overflow: hidden; /* 内容过多时自动排版，溢出隐藏 */
+      }
+      
+      /* Restore decorations */
+      .folder-page::after, .ripple-layer {
+        display: block !important;
+      }
+    }
+    
+    /* 点击交互动画 */
+    @keyframes bounceGraphic {
+      0% { transform: translateY(0); }
+      40% { transform: translateY(-30px); }
+      100% { transform: translateY(0); }
+    }
+
+    /* ================= Social Media Content (Accordion Fold) ================= */
+    .gallery-container#socialMediaGallery {
+      display: flex;
+      flex-direction: column; 
+      align-items: center;
+      justify-content: flex-start;
+      padding: 0; /* Remove padding */
+      overflow: visible;
+      perspective: 2500px;
+      gap: 0;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      pointer-events: none;
+      width: 100%;
+      height: 500px; /* Increased height to occupy Sort Bar space */
+      min-height: 0;
+      position: absolute; 
+      top: 130px; 
+      z-index: 200; /* Increased from 15 to 200 to match sort bar and sit above container */
+      margin-top: 0;
+    }
+
+    .gallery-container#socialMediaGallery.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Sort Bar */
+    .sort-bar {
+        display: flex;
+        gap: 20px;
+        position: absolute;
+        bottom: 100%; /* Position above the gallery */
+        left: 50%;
+        transform: translateX(-50%); /* Center horizontally relative to viewport */
+        width: 100%;
+        max-width: 1200px; /* Match container max-width */
+        padding: 0 24px 8px 24px; /* Restore padding to prevent overlap */
+        justify-content: flex-end; /* Right align */
+        margin-bottom: 0;
+        z-index: 200;
+        font-family: var(--font-code);
+        pointer-events: auto; /* Ensure clickable */
+      }
+      
+      @media (max-width: 480px) {
+        .sort-bar {
+           gap: 8px !important; /* Smaller gap on mobile */
+           margin-bottom: 15px !important; /* Push up to align with title baseline */
+           padding-right: 15px !important;
+        }
+        .sort-btn {
+           padding: 2px 8px !important;
+           font-size: 9px !important;
+        }
+      }
+
+    .sort-btn {
+      background: transparent;
+      border: 1px solid #999;
+      color: #666;
+      padding: 3px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 10px;
+      transition: all 0.3s;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .sort-btn:hover {
+      border-color: #333;
+      color: #333;
+    }
+
+    .sort-btn.active {
+      background: #333;
+      color: #fff;
+      border-color: #333;
+    }
+    
+    /* Accordion Stage */
+    .accordion-stage {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transform-style: preserve-3d;
+      pointer-events: none; /* Stage allows click-through */
+    }
+
+    .folder-page {
+      position: absolute;
+      top: 5px; /* Align to top of container */
+      width: 320px; 
+      height: 100%; /* Full height */
+      transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1), filter 0.6s ease;
+      transform-style: preserve-3d;
+      cursor: pointer;
+      overflow: hidden;
+      pointer-events: auto; /* Enable interaction for pages */
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: pan-y; /* Allow vertical scroll but capture horizontal swipe */
+    }
+    .folder-page {
+      background-color: #f6f3ea;
+      background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.12'/%3E%3C/svg%3E");
+      
+      border: 1px solid rgba(0,0,0,0.1);
+      box-shadow: inset 0 0 30px rgba(0,0,0,0.03); /* Inner shadow for depth */
+      
+      /* Hardware acceleration hint */
+      will-change: transform;
+    }
+
+    /* Dynamic Shadow Overlay for Folds */
+    .folder-page::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      transition: background 0.6s ease;
+      z-index: 10;
+    }
+
+    /* Shadow classes controlled by JS */
+    .folder-page.shadow-light {
+      background: linear-gradient(to right, rgba(0,0,0,0.05), rgba(0,0,0,0));
+    }
+    .folder-page.shadow-medium {
+      background: linear-gradient(to right, rgba(0,0,0,0.15), rgba(0,0,0,0.05));
+    }
+    .folder-page.shadow-heavy {
+      background: linear-gradient(to right, rgba(0,0,0,0.3), rgba(0,0,0,0.1));
+    }
+    
+    /* Water Ripple Effect */
+    .folder-page .ripple-layer {
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at center, rgba(64, 158, 255, 0.08) 0%, rgba(64, 158, 255, 0) 50%);
+      opacity: 0.8;
+      pointer-events: none;
+      mix-blend-mode: multiply;
+      animation: rippleFlow 12s infinite ease-in-out alternate;
+      z-index: 5;
+    }
+    
+    @keyframes rippleFlow {
+      0% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(10px, 15px) scale(1.05); }
+      100% { transform: translate(-5px, -10px) scale(1); }
+    }
+
+    /* Content Wrapper */
+    .page-content-wrapper {
+      position: relative;
+      z-index: 6; 
+      width: 100%;
+      height: 100%;
+      padding: 20px 25px; /* Reduced padding for more space */
+      display: flex;
+      flex-direction: column;
+      background: transparent;
+      /* Ensure content is visible even when folded, but handled by 3D transform */
+      backface-visibility: hidden; /* Clean up rendering */
+    }
+    
+    /* Hide content logic is removed; we rely on 3D angle and z-index */
+    
+    /* Spine Label removed */
+    .spine-label {
+      display: none;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .folder-page {
+        width: 80vw;
+        height: 60vh;
+      }
+      .gallery-container#socialMediaGallery {
+        perspective: 1000px;
+      }
+    }
+    
+    /* 竖排标题 - 折叠状态显示 */
+    .vertical-title {
+      display: none;
+    }
+
+    /* 账号标题 */
+    .account-header {
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid rgba(0,0,0,0.8);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    
+    .account-name {
+      font-family: var(--font-main);
+      font-size: 18px;
+      font-weight: bold;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 240px;
+      color: #222;
+    }
+    
+    .account-platform {
+      font-family: var(--font-code);
+      font-size: 11px;
+      color: #555;
+      text-transform: uppercase;
+      flex-shrink: 0;
+      background: rgba(0,0,0,0.05);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    /* 数据列表 */
+    .posts-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex-grow: 1;
+    }
+
+    .post-item {
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+    }
+    
+    .post-item:last-child {
+      border-bottom: none;
+    }
+    
+    .post-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 5px;
+    }
+    
+    .post-title {
+      font-family: var(--font-chinese);
+      font-size: 13px;
+      font-weight: 500;
+      color: #111;
+      text-decoration: none;
+      transition: color 0.2s;
+      flex: 1;
+      margin-right: 8px;
+      line-height: 1.4;
+      /* Ensure single line */
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: block; /* Change from flex child behavior if needed */
+    }
+    
+    .post-title:hover {
+      color: #666;
+      text-decoration: underline;
+    }
+    
+    .post-date {
+      font-family: var(--font-code);
+      font-size: 10px;
+      color: #888;
+      white-space: nowrap;
+      margin-top: 2px;
+    }
+    
+    .post-stats {
+      display: block; /* Changed to block to handle absolute positioning of groups */
+      position: relative;
+      font-family: var(--font-code);
+      font-size: 10px;
+      color: #555;
+      height: 14px; /* Fixed height for stats line */
+      overflow: hidden;
+    }
+    
+    .stats-group {
+      display: flex;
+      gap: 12px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      background: transparent; /* Changed from #f6f3ea to transparent to blend with page shadows */
+    }
+    
+    .default-group {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    
+    .hover-group {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    
+    /* Trigger hover on post-item */
+    .post-item:hover .has-hover-stats .default-group {
+      transform: translateY(-100%);
+      opacity: 0;
+    }
+    
+    .post-item:hover .has-hover-stats .hover-group {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      white-space: nowrap;
+    }
+    
+    .stat-label {
+      color: #999;
+      font-size: 9px;
+      text-transform: uppercase;
+    }
+    
+    /* 响应式调整 */
+    @media (max-width: 768px) {
+      /* 移除被覆盖的 socialMediaGallery 样式，避免冲突 */
+      /*
+      .gallery-container#socialMediaGallery {
+        flex-direction: column; 
+        height: auto;
+        overflow-y: auto;
+        padding: 20px;
+      }
+      .folder-page {
+        width: 100%;
+        height: auto;
+        min-height: 100px;
+        margin-bottom: 10px;
+        flex-shrink: 0;
+      }
+      */
+      
+      .folder-page.expanded {
+        min-height: 400px;
+      }
+      .page-content-wrapper {
+        min-width: 0;
+      }
+      .vertical-title {
+        writing-mode: horizontal-tb;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="canvas-container" id="canvas-container">
+    <!-- P5.js 会在这里创建 canvas -->
+  </div>
+
+  <!-- Graphic Design 图片展示区域 -->
+  <div class="gallery-container" id="graphicDesignGallery" style="display: none;">
+    <!-- 图片将通过JavaScript动态添加 -->
+  </div>
+
+  <!-- Visual Display 图片展示区域 -->
+  <div class="gallery-container" id="visualDisplayGallery" style="display: none;">
+    <!-- 图片将通过JavaScript动态添加 -->
+  </div>
+
+
+  <!-- 弹出窗口 -->
+  <div class="image-modal" id="imageModal">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <img id="modalImage" src="" alt="Full Image" />
+    </div>
+  </div>
+
+  <!-- Social Media Content (Folder) 展示区域 -->
+  <div class="gallery-container" id="socialMediaGallery" style="display: none;">
+    <!-- 内容将通过JavaScript动态添加 -->
+  </div>
+
+  <div class="container">
+    <!-- 顶部导航 -->
+    <header>
+      <nav class="nav-links">
+        <a href="./index.html">Sketchbook</a>
+        <a href="./works.html">Works</a>
+        <a href="./experience.html">Experience</a>
+        <a href="./about.html">About</a>
+      </nav>
+    </header>
+    
+    <div class="content-wrapper">
+      <!-- 页面标题 -->
+      <div class="page-title">Works.</div>
+      
+
+      
+      <!-- Canvas 占位空间 -->
+      <div class="canvas-spacer"></div>
+    </div>
+  </div>
+
+  <!-- 底部 Footer -->
+  <footer>
+    <div class="footer-inner" style="font-family: var(--font-code);">
+      <div class="footer-item">
+        <b>Email</b>
+        <span>sy.mu@foxmail.com</span>
+      </div>
+      <div class="footer-item">
+        <b>Instagram</b>
+        <span>@enjolra.as</span>
+      </div>
+      <div class="footer-item">
+        <b>Rednote</b>
+        <span style="font-family: 'Noto Sans HK', sans-serif;">@冰泡饭</span>
+      </div>
+      <div class="footer-item">
+        <b>Rights</b>
+        <span>Sonnet 5 by William Shakespeare</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- P5.js Sketch - 集成 Foam_p5js 的交互效果 -->
+  <script>
+    // ================= 配置参数 =================
+    let config = {
+      topBoundary: 100, // 200 / 1.2 = 166.67，让线条上升距离变为原来的1.2倍
+      riseSpeed: 0.1,
+      fallSpeed: 4.5,
+      lineGapInitial: 70,
+      lineGapCompressed: 48,
+      paddingBottom: 90,
+      trailDensity: 12,
+      waveCurvature: 2,
+      textGapRatio: 1.3, 
+      closingSpeed: 0.15,
+      bgColor: 242 // 网页背景色 #F2F2F1 对应 RGB(242, 242, 241)
+    };
+
+    let waves = [];
+    let activeWaveIdx = -1;
+    let hasBeenClicked = false;
+    let scaleFactor = 1; // 缩放比例
+    let currentDisplayedImageId = -1; // 当前显示的图片ID
+    let isMobileMode = false; // 移动端标记
+
+    // 图片路径数组
+    const workImages = []; // Graphic Design 图片
+    const displayImages = []; // Visual Display 图片
+    const seashellPins = []; // 图钉图片
+
+    // 初始化图片路径
+    for (let i = 1; i <= 7; i++) {
+      workImages.push(`./images/workimg (${i}).png`);
+    }
+    for (let i = 1; i <= 17; i++) {
+      displayImages.push(`./images/displayimg (${i}).png`);
+    }
+    // 图钉图片路径（根据实际文件名）
+    const pinFiles = [
+      'Banana-2026-02-05-01-03-24 1.png',
+      'Banana-2026-02-05-01-03-24 2.png',
+      'Banana-2026-02-05-01-03-24 3.png',
+      'Banana-2026-02-05-01-03-24 4.png',
+      'Banana-2026-02-05-01-03-24 5.png',
+      'Banana-2026-02-05-01-03-24 6.png',
+      'Banana-2026-02-05-01-03-24 7.png',
+      'Banana-2026-02-05-01-03-24 8.png',
+      'Banana-2026-02-05-01-03-24 9.png',
+      'Banana-2026-02-05-01-03-24 10.png',
+      'Banana-2026-02-05-01-03-24 11.png',
+      'Banana-2026-02-05-01-03-24 12.png',
+      'Banana-2026-02-05-01-03-24 14.png',
+      'Banana-2026-02-05-01-03-24 15.png',
+      'Banana-2026-02-05-01-03-24 16.png',
+      'Banana-2026-02-05-01-03-24 17.png',
+      'Banana-2026-02-05-01-03-24 18.png'
+    ];
+    pinFiles.forEach(file => {
+      seashellPins.push(`./images/seashells/${file}`);
+    });
+
+    // 图片容器引用
+    let graphicDesignGallery = null;
+    let visualDisplayGallery = null;
+    let socialMediaGallery = null;
+    let imageModal = null;
+    
+    // Social Media Real Data from content.json
+    const socialMediaData = [
+      {
+        account: "纸老虎SoulPaper",
+        platform: "Rednote",
+        posts: [
+          { title: "薄巧统治文具界了?!", date: "12/17/24", views: "4,127", likes: "165", comments: "21", favs: "34", shares: "4", link: "https://www.xiaohongshu.com/explore/6761217f000000000b02007c?xsec_token=ABL957_JIMUlRW0-hf-j8gCXBMPh4MP3Vpzh2-XbPleYs=&xsec_source=pc_user" },
+          { title: "法国文具纸老虎 | Welcome to China", date: "2/1/25", views: "10,723", likes: "365", comments: "23", favs: "101", shares: "55", link: "https://www.xiaohongshu.com/explore/679cfd660000000018018393?xsec_token=ABhMU9SfnIJ2l7LKQ4d_x6Ms4ChhhblwB2UtE-MX-0vVE=&xsec_source=pc_user" },
+          { title: "法国文具 | 在巴黎买到了人生文具!", date: "1/25/25", views: "8,037", likes: "348", comments: "4", favs: "168", shares: "37", link: "https://www.xiaohongshu.com/explore/67948bd20000000018011594?xsec_token=ABzrQabAM5Dq5t9RcnIFELC0x3kr2wua02jAAbMnC9HPU=&xsec_source=pc_user" },
+          { title: "巴黎店换新装 | 欧洲文具控速来探店!!", date: "2/9/25", views: "13,312", likes: "222", comments: "10", favs: "57", shares: "19", link: "https://www.xiaohongshu.com/explore/67a894650000000017038349?xsec_token=AB6ZPPl3RkahJYucCG02Q62QHCYhXuZVy5jb9IpbE-Mpo=&xsec_source=pc_user" },
+          { title: "开学文具怎么能少得了法国纸老虎！！", date: "2/11/25", views: "14,842", likes: "299", comments: "1", favs: "44", shares: "10", link: "https://www.xiaohongshu.com/explore/67aaecb5000000001801a908?xsec_token=AB42YydvSNj4TS9kkagmuU5_JYbKPmeOaR-YV9uYIHE6w=&xsec_source=pc_user" },
+          { title: "法国文具随心配 | 粉绿Rose-Vert", date: "4/28/25", views: "13,126", likes: "198", comments: "5", favs: "54", shares: "6", link: "https://www.xiaohongshu.com/explore/680f19110000000023013dad?xsec_token=ABm2Qw8cgcXdl8-3WluwuFh3wg4w8oOwP4cnhGuBbxbr8=&xsec_source=pc_user" },
+          { title: "法国文具套装随心配 | 粉黑BlackPink", date: "4/3/25", views: "-", likes: "45", comments: "4", favs: "10", shares: "-", link: "https://www.xiaohongshu.com/explore/67ebe0ec000000001c00e918?xsec_token=ABgbeZ6CywHDzUIoMq-PVmju_uY8G0RQ9-KQqVVXUHzWk=&xsec_source=pc_user" },
+          { title: "法国文具套装随心配 | 橙色Orange", date: "3/21/25", views: "-", likes: "27", comments: "1", favs: "17", shares: "-", link: "https://www.xiaohongshu.com/explore/67dfd027000000001d0062ef?xsec_token=ABtKAKT2U41boq8RgOrE9nRhbiGTct4x4pKrtQ_JUJN0o=&xsec_source=pc_user" },
+          { title: "法国文具套装随心配 | 黄色 Jaune", date: "3/18/25", views: "-", likes: "24", comments: "2", favs: "9", shares: "-", link: "https://www.xiaohongshu.com/explore/67dbb9df00000000060382eb?xsec_token=ABn3G2-Mqru6mAouumL6KmwfLrjnKam1lyrqEMHG0QSW8=&xsec_source=pc_user" },
+          { title: "可能是全网首个专门记录“梦境”的本子", date: "3/6/25", views: "-", likes: "29", comments: "1", favs: "14", shares: "-", link: "https://www.xiaohongshu.com/explore/67b47990000000001201f6b5?xsec_token=ABsugyJfMr2UEp_xgSGgKLKS1BvRrdlroKLY7REkweta8=&xsec_source=pc_user" },
+          { title: "揭秘!!全网第一个食谱记录本", date: "3/3/25", views: "3,582", likes: "103", comments: "20", favs: "46", shares: "14", link: "https://www.xiaohongshu.com/explore/67c59ff30000000029018c27?xsec_token=ABo3v1-vefzP2QTorXWEfudMrmYqM4dcUbE7H1E-4buWU=&xsec_source=pc_user" },
+          { title: "开箱 | 文具控在巴黎必逛的8家店!", date: "2/20/25", views: "32,034", likes: "2122", comments: "28", favs: "895", shares: "178", link: "https://www.xiaohongshu.com/explore/67b7098a000000001203d6e4?xsec_token=ABpBPOV76qjitNmX5-soAkRpmT6etLnT-jSUHFfVecCxU=&xsec_source=pc_user" },
+          { title: "Salut这里是纸老虎PapierTigre官方帐号", date: "3/21/25", views: "6,405", likes: "253", comments: "21", favs: "69", shares: "36", link: "https://www.xiaohongshu.com/explore/67dd0c91000000001c003107?xsec_token=ABndpXQWlvFqKc65uD4oUMERCT4GDsBtBfR28j4eBv_kA=&xsec_source=pc_user" },
+          { title: "一分钟认识纸老虎 | 13年法国文具品牌", date: "2/5/25", views: "28,317", likes: "945", comments: "28", favs: "278", shares: "78", link: "https://www.xiaohongshu.com/explore/67a23ebd00000000180121c8?xsec_token=ABlRjICrby_-LiEVYeQ2OeG6NlvpSiicqDFU73xAJh6IY=&xsec_source=pc_user" },
+          { title: "跟着PapierTigre | 色彩练习Day1", date: "4/11/25", views: "-", likes: "45", comments: "9", favs: "19", shares: "-", link: "https://www.xiaohongshu.com/explore/67f76baa000000000b014b4a?xsec_token=ABPqR6I5-hbjG9mDu3HVPCRbsP_ieiiUZUU8QAe3gAAPE=&xsec_source=pc_user" }
+        ]
+      },
+      {
+        account: "茂子SoulMaster",
+        platform: "Rednote",
+        posts: [
+          { title: "首次公开！法国文具引进全过程", date: "12/18/24", views: "51,989", likes: "4333", comments: "185", favs: "3436", shares: "925", link: "https://www.xiaohongshu.com/explore/6762aed2000000000b014ecf?xsec_token=ABn6DQUXgBZvFJqT51-BbeC03UAGFll2zMkcvnbHfL_Wo=&xsec_source=pc_user" },
+          { title: "巴厘岛好吗？", date: "1/14/25", views: "147,787", likes: "5516", comments: "1299", favs: "2130", shares: "4517", link: "https://www.xiaohongshu.com/explore/67864bd7000000000b02270e?xsec_token=ABFxMD37ybN80uniTHVth-lK9d4_0ToJr4mZBhtPu924o=&xsec_source=pc_user" },
+          { title: "法国人为什么这么钟爱日本文化?", date: "12/23/24", views: "-", likes: "71", comments: "12", favs: "38", shares: "41", link: "https://www.xiaohongshu.com/explore/67692305000000000b00ff0a?xsec_token=ABJcEDQHk1cC_NUCT-bTD9YZE-fCTOCCkP4ZHttb0V9p8=&xsec_source=pc_user" },
+          { title: "创业12年最后来成都开店?! 经验分享", date: "12/29/24", views: "-", likes: "59", comments: "11", favs: "19", shares: "-", link: "https://www.xiaohongshu.com/explore/67710f04000000000b00d7b7?xsec_token=AB4Lcr_G4PegR-kL14jLXX3F6T9VZUyUsdLIORV839XQ8=&xsec_source=pc_user" }
+        ]
+      },
+      {
+        account: "灵魂当家成都店",
+        platform: "Rednote",
+        posts: [
+          { title: "带你沉浸式云逛成都生活方式买手店!", date: "8/11/24", views: "-", likes: "40", comments: "26", favs: "1", shares: "-", link: "https://www.xiaohongshu.com/explore/66b89270000000000d030d96?xsec_token=ABAPYu5Mp1dIOmcSUkZlRR5sm-uawcNXUhgOV5kCIcXI0=&xsec_source=pc_user" },
+          { title: "这家在巴黎开了12年的文具店来成都了?!", date: "7/8/24", views: "-", likes: "107", comments: "110", favs: "20", shares: "-", link: "https://www.xiaohongshu.com/explore/668bb7b3000000000a024e9e?xsec_token=AB5vxnPp6y22xQVlnWiyzCdt8iN6juJJ2SahrQWRvkNYY=&xsec_source=pc_user" },
+          { title: "治愈灵魂的自然植物调香师 | 成都香氛店", date: "3/11/25", views: "-", likes: "76", comments: "57", favs: "1", shares: "-", link: "https://www.xiaohongshu.com/explore/67d011a7000000000e0064c6?xsec_token=ABbabPWRncwdpDt7zfPY5M95bJxvGJs5PGB29GfqEdHng=&xsec_source=pc_user" },
+          { title: "能量疗愈水晶碗 接受大自然的馈赠", date: "1/18/25", views: "-", likes: "67", comments: "24", favs: "7", shares: "-", link: "https://www.xiaohongshu.com/explore/67876219000000001601afa5?xsec_token=ABBK2ovreNOToQQXmHhpAsj1CncCnYiFPWNXVstomvrj8=&xsec_source=pc_user" },
+          { title: "在追求「垂直」的时代做一家不垂直的店", date: "12/17/24", views: "-", likes: "71", comments: "36", favs: "24", shares: "-", link: "https://www.xiaohongshu.com/explore/676138f2000000000900e2b8?xsec_token=ABL957_JIMUlRW0-hf-j8gCcbLWEIERWesP-lL4YAEzaY=&xsec_source=pc_user" },
+          { title: "成都还有哪家生活方式集合空间是值得逛的?", date: "9/21/24", views: "-", likes: "37", comments: "27", favs: "3", shares: "-", link: "https://www.xiaohongshu.com/explore/66eeda170000000026033639?xsec_token=AB57kj2dY99gs1WN0CLfcqH-223tWE5lQRLTHbGsh4H7s=&xsec_source=pc_user" },
+          { title: "成都新店开业终于慢慢人多起来啦！", date: "3/23/24", views: "-", likes: "77", comments: "46", favs: "4", shares: "-", link: "https://www.xiaohongshu.com/explore/65febf260000000012036b89?xsec_token=ABTtUymZqSabFAKIZ09zg9KD68H1slp8u3Vm4IznN7rPU=&xsec_source=pc_user" }
+        ]
+      },
+      {
+        account: "MOGLEA",
+        platform: "Rednote",
+        posts: [
+          { title: "艺术=乱画?美国文具品牌让色彩自由发挥", date: "6/23/25", views: "-", likes: "5531", comments: "1565", favs: "46", shares: "-", link: "https://www.xiaohongshu.com/explore/6857e00d000000001c035390?xsec_token=ABUrhxlTdxCLP7md5OS_FHgI733yA0sot2D98RUO1HWXQ=&xsec_source=pc_user" }
+        ]
+      },
+      {
+        account: "ART23国际艺术教育",
+        platform: "Rednote",
+        posts: [
+          { title: "策展人的必备技能(上)｜策展笔记", date: "10/27/22", views: "-", likes: "385", comments: "346", favs: "8", shares: "-", link: "https://www.xiaohongshu.com/explore/635919ca0000000015022a1b?xsec_token=ABNtY0V-aDBbqMNofLxb5HnZUnhrzzHlwWoAIK9YZAW8Q=&xsec_source=pc_user" },
+          { title: "策展人的必备技能(下)｜策展笔记", date: "10/29/22", views: "-", likes: "800", comments: "797", favs: "15", shares: "-", link: "https://www.xiaohongshu.com/explore/635cffee0000000015021f83?xsec_token=AB817UUW3ldiOkdw14wKxnQ9IxkvPD9_fjyMj3Mkotp3U=&xsec_source=pc_user" },
+          { title: "策展时一定要有的组成人员‼ | 策展笔记", date: "10/28/22", views: "-", likes: "361", comments: "288", favs: "10", shares: "-", link: "https://www.xiaohongshu.com/explore/635517cc000000001601b16f?xsec_token=ABCphhSuQiue9_p4pTt1UlG9RejMYZTxdI3a6VjL0VszE=&xsec_source=pc_user" },
+          { title: "策展人必会的展览提案计划书｜策展笔记", date: "11/21/22", views: "-", likes: "427", comments: "545", favs: "1", shares: "-", link: "https://www.xiaohongshu.com/explore/63775789000000000c0230ea?xsec_token=AB3-Cjzfl_MRtqvuQ6NkT0MKdXqnktIS8gHublCpTTP-0=&xsec_source=pc_user" },
+          { title: "策展必须知道的展览类型｜策展笔记", date: "12/13/22", views: "-", likes: "319", comments: "231", favs: "1", shares: "-", link: "https://www.xiaohongshu.com/explore/63986130000000001c007d2a?xsec_token=ABGONu8a_2WKJt-EZACc5YEF3sC_CM9SV9Lx8rEna2XVo=&xsec_source=pc_user" },
+          { title: "3种叙事型展览设计思路｜策展笔记", date: "12/18/22", views: "-", likes: "827", comments: "942", favs: "2", shares: "-", link: "https://www.xiaohongshu.com/explore/63b549d9000000001c0066bd?xsec_token=ABIHJgmBsfMyAJuoIdasaHjfAcDheWKceNrxe1VZTuKH4=&xsec_source=pc_user" },
+          { title: "如何给展览起一个好名字｜ART23策展笔记", date: "1/14/23", views: "-", likes: "188", comments: "114", favs: "4", shares: "-", link: "https://www.xiaohongshu.com/explore/63c26fca000000001f00acbc?xsec_token=ABNwn96t-9fYdl2TZsveFxVBbOZctubEaTEbADBVAh2LQ=&xsec_source=pc_user" },
+          { title: "策展应该怎么讲出满分故事｜策展笔记", date: "12/28/22", views: "-", likes: "127", comments: "166", favs: "3", shares: "-", link: "https://www.xiaohongshu.com/explore/63aae629000000002203956f?xsec_token=ABPeFGUkLFtRi7ujR7z5M2_zheTQ5dHbdF0vjzMuKUTPo=&xsec_source=pc_user" },
+          { title: "这7本没读过都不算入门!!", date: "4/26/23", views: "-", likes: "1009", comments: "1413", favs: "8", shares: "-", link: "https://www.xiaohongshu.com/explore/64490ab00000000007039f7a?xsec_token=ABH4IrwJZhugpJY1W1wMN4qAU7BYdHewq5NoU_Xjitfl0=&xsec_source=pc_user" }
+        ]
+      }
+    ];
+
+    function setup() {
+      console.log('Setup 开始');
+      
+      // 检测移动端
+      isMobileMode = windowWidth <= 480;
+      let isTabletMode = windowWidth > 480 && windowWidth <= 1200;
+
+      // 移动端初始化滚动锁定
+      if (isMobileMode) {
+        document.body.classList.add('locked-scroll');
+      }
+
+      // 计算画布尺寸
+      let canvasWidth = windowWidth;
+      let canvasHeight;
+      
+      if (isMobileMode) {
+        // 移动端：固定高度，用于显示波浪
+        canvasHeight = 500; // 高度调整为 500
+        config.lineGapInitial = 100; // 增加波浪线间距，防止误触 (原为 50)
+        config.lineGapCompressed = config.lineGapInitial * 0.7; // 压缩后的间距为初始间距的80%
+        config.paddingBottom = 120; // Lower waves to match footer descent (was 250)
+        config.textGapRatio = 1.0; 
+      } else if (isTabletMode) {
+        // 平板/小桌面：波浪线在底部
+        canvasHeight = canvasWidth * (623 / 1280) - 20; 
+        config.paddingBottom = 30; // 紧贴底部 (Align with bottom)
+        config.lineGapInitial = 75; 
+        config.lineGapCompressed = 60; // Compressed gap increased from 50 to 60
+        config.textGapRatio = 1.2;
+      } else {
+        // 桌面端：保持原始比例
+        canvasHeight = canvasWidth * (623 / 1280) - 20;
+        config.paddingBottom = 90;
+        config.lineGapInitial = 70;
+        config.lineGapCompressed = 48;
+        config.textGapRatio = 1.3;
+      }
+      
+      let canvas = createCanvas(canvasWidth, canvasHeight);
+      canvas.parent('canvas-container');
+      canvas.id('p5-canvas');
+      
+      // Tablet Mode: Position canvas at the bottom of the first screen
+      if (isTabletMode) {
+          const canvasContainer = document.getElementById('canvas-container');
+          if (canvasContainer) {
+              canvasContainer.style.top = (window.innerHeight - canvasHeight - 10) + 'px';
+          }
+      } else if (!isMobileMode) {
+          // Desktop: Reset top (handled by CSS default or 40px)
+          const canvasContainer = document.getElementById('canvas-container');
+          if (canvasContainer) {
+              canvasContainer.style.top = '40px';
+          }
+      }
+      
+      textFont('Special Elite');
+
+      // 根据窗口宽度计算缩放比例
+      if (isMobileMode) {
+         // 移动端不按宽度整体缩放，而是保持一定比例以显示中间部分
+         // 如果 canvasWidth = 375, 1280/375 = 3.4
+         // 我们希望波浪看起来大一点，只看中间，所以 scaleFactor 不要太小
+         scaleFactor = 0.6; 
+      } else {
+         scaleFactor = canvasWidth / 1280;
+      }
+
+      let labels = ["Graphic Design", "Visual Display", "Social Media Content"];
+      // 初始位置由 updateTargetPositions 计算，这里先用临时值
+      let lastLineY = canvasHeight - config.paddingBottom * scaleFactor;
+      let firstLineY = lastLineY - (2 * config.lineGapInitial * scaleFactor);
+      
+      for (let i = 0; i < labels.length; i++) {
+        // 移动端文字大小调整
+        let fontSize = isMobileMode ? 14 : 16 * scaleFactor;
+        textSize(fontSize);
+        let tw = textWidth(labels[i]) * config.textGapRatio;
+        // 移动端文字更紧凑
+        if (isMobileMode) tw *= 0.8; 
+        
+        let startY = firstLineY + i * config.lineGapInitial * scaleFactor;
+        waves.push(new Wave(startY, labels[i], i, tw));
+      }
+      
+      // 初始化图片容器引用
+      graphicDesignGallery = document.getElementById('graphicDesignGallery');
+      visualDisplayGallery = document.getElementById('visualDisplayGallery');
+      socialMediaGallery = document.getElementById('socialMediaGallery');
+      imageModal = document.getElementById('imageModal');
+      
+      // 初始化图片展示
+      initImageGalleries();
+      
+      console.log('Setup 完成，缩放比例：' + scaleFactor);
+    }
+    
+    function windowResized() {
+      isMobileMode = windowWidth <= 480;
+      let isTabletMode = windowWidth > 480 && windowWidth <= 1200;
+      
+      // 窗口大小改变时重新调整画布
+      let canvasWidth = windowWidth;
+      let canvasHeight;
+      
+      if (isMobileMode) {
+        canvasHeight = 500;
+        config.lineGapInitial = 100; // 增加波浪线间距，防止误触 (原为 50)
+        config.lineGapCompressed = config.lineGapInitial * 0.8;
+        config.paddingBottom = 120;
+      } else if (isTabletMode) {
+        canvasHeight = canvasWidth * (623 / 1280) - 20;
+        config.paddingBottom = 30;
+        config.lineGapInitial = 75;
+        config.lineGapCompressed = 60; // Sync with setup
+      } else {
+        canvasHeight = canvasWidth * (623 / 1280) - 20;
+        config.lineGapInitial = 70;
+        config.lineGapCompressed = 48;
+        config.paddingBottom = 90;
+      }
+
+      resizeCanvas(canvasWidth, canvasHeight);
+      
+      // Tablet Mode: Update position on resize
+      if (isTabletMode) {
+          const canvasContainer = document.getElementById('canvas-container');
+          if (canvasContainer) {
+              canvasContainer.style.top = (window.innerHeight - canvasHeight - 10) + 'px';
+          }
+      } else if (!isMobileMode) {
+          const canvasContainer = document.getElementById('canvas-container');
+          if (canvasContainer) {
+              canvasContainer.style.top = '40px';
+          }
+      }
+      
+      if (isMobileMode) {
+         scaleFactor = 0.6;
+      } else {
+         scaleFactor = canvasWidth / 1280;
+      }
+      
+      // 重新初始化波浪
+      waves = [];
+      let labels = ["Graphic Design", "Visual Display", "Social Media Content"];
+      // 初始位置由 updateTargetPositions 计算
+      let lastLineY = canvasHeight - config.paddingBottom * scaleFactor;
+      let firstLineY = lastLineY - (2 * config.lineGapInitial * scaleFactor);
+      
+      for (let i = 0; i < labels.length; i++) {
+        let fontSize = isMobileMode ? 14 : 16 * scaleFactor;
+        textSize(fontSize);
+        let tw = textWidth(labels[i]) * config.textGapRatio;
+        if (isMobileMode) tw *= 0.8;
+        
+        let startY = firstLineY + i * config.lineGapInitial * scaleFactor;
+        waves.push(new Wave(startY, labels[i], i, tw));
+      }
+      
+      // 如果当前显示的是Visual Display，重新布局
+      if (currentDisplayedImageId === 1 && visualDisplayGallery && visualDisplayGallery.classList.contains('show')) {
+        initVisualDisplayGallery();
+      }
+      // 如果当前显示的是Social Media，重新布局
+      if (currentDisplayedImageId === 2 && socialMediaGallery && socialMediaGallery.classList.contains('show')) {
+        initSocialMediaGallery();
+      }
+    }
+
+
+    function updateTargetPositions() {
+      let currentGapY = hasBeenClicked ? config.lineGapCompressed : config.lineGapInitial;
+      // 固定最底部线条的位置，从底部往上计算
+      let lastLineY = height - config.paddingBottom * scaleFactor; // 这里控制最底部线条的位置
+      let firstLineY = lastLineY - (2 * currentGapY * scaleFactor);
+
+      for (let i = 0; i < waves.length; i++) {
+        waves[i].homeY = firstLineY + i * currentGapY * scaleFactor;
+      }
+    }
+
+    // ================= Wave 类 =================
+    class Wave {
+      constructor(y, txt, id, fullWidth) {
+        this.homeY = y;
+        this.currentY = y;
+        this.txt = txt;
+        this.id = id;
+        this.state = 'IDLE';
+        this.displayOpacity = 255;
+        this.textBaseWidth = fullWidth;
+        this.currentTextScale = 1.0; 
+        this.waterTrails = [];
+        this.noiseSeed = random(1000);
+        this.centerX = [width * 0.28, width * 0.5, width * 0.72][id];
+        this.imageOpacity = 0; // 图片透明度
+        this.imageElement = null; // 将在setup中初始化
+      }
+
+      update() {
+        if (activeWaveIdx !== -1 && activeWaveIdx !== this.id) {
+          this.displayOpacity = lerp(this.displayOpacity, 0, 0.15);
+        } else {
+          this.displayOpacity = lerp(this.displayOpacity, 255, 0.1);
+        }
+
+        if (this.state === 'RISING') {
+          this.currentY = lerp(this.currentY, config.topBoundary * scaleFactor, config.riseSpeed);
+          this.currentTextScale = lerp(this.currentTextScale, 0, config.closingSpeed);
+          this.generateFullWidthTrails();
+          // 隐藏所有图片
+          hideAllGalleries();
+          currentDisplayedImageId = -1;
+          if (this.currentY <= config.topBoundary * scaleFactor + 2) {
+            this.state = 'FALLING';
+          }
+        } 
+        else if (this.state === 'FALLING') {
+          // 优化：使用 lerp 代替固定速度，使下落更平滑，并确保能够准确到达目标位置
+          // 之前是 += speed，容易产生抖动或过冲
+          // 使用一个稍快的 lerp 因子
+          this.currentY = lerp(this.currentY, this.homeY, 0.08); 
+          
+          if (this.currentY > this.homeY - 150 * scaleFactor) {
+            this.currentTextScale = lerp(this.currentTextScale, 1.0, 0.08); 
+          }
+          // 计算图片渐显进度
+          let fallProgress = (this.currentY - config.topBoundary * scaleFactor) / (this.homeY - config.topBoundary * scaleFactor);
+          fallProgress = constrain(fallProgress, 0, 1);
+          // 当波浪下降到一定程度后开始显示图片
+          if (fallProgress > 0.3) { // Graphic Design 延后出现，从 0.1 改为 0.3
+             // Graphic Design 使用 CSS 动画
+             if (this.id === 0) {
+                showGalleryForWave(this.id);
+             } else if (this.id === 1) {
+                // Visual Display 使用 JS 复杂动画，只触发一次
+                if (currentDisplayedImageId !== 1) {
+                   showGalleryForWave(this.id);
+                   currentDisplayedImageId = 1; // 标记已触发，防止重复触发
+                }
+             } else {
+                showGalleryForWave(this.id);
+             }
+          }
+          
+          // 判断结束条件：非常接近目标位置时停止
+          if (abs(this.currentY - this.homeY) < 1.0) {
+            this.currentY = this.homeY; // 强制吸附
+            this.state = 'IDLE';
+            activeWaveIdx = -1;
+            // 图片保持显示，不隐藏
+            this.imageOpacity = 1;
+            currentDisplayedImageId = this.id;
+            showGalleryForWave(this.id, 1);
+            
+            // [New] Unlock scroll on mobile when animation finishes
+            if (isMobileMode) {
+               document.body.classList.remove('locked-scroll');
+            }
+          }
+        } else {
+          this.currentY = lerp(this.currentY, this.homeY, 0.1);
+          this.currentTextScale = lerp(this.currentTextScale, 1.0, 0.1);
+          // IDLE状态时，如果这是当前显示的图片，保持显示
+          if (this.id === currentDisplayedImageId) {
+            this.imageOpacity = 1;
+            showGalleryForWave(this.id, 1);
+          }
+        }
+
+        for (let i = this.waterTrails.length - 1; i >= 0; i--) {
+          let t = this.waterTrails[i];
+          t.y += t.speed * scaleFactor;
+          t.opacity -= 3;
+          if (t.opacity <= 0) this.waterTrails.splice(i, 1);
+        }
+      }
+
+      display() {
+        if (this.displayOpacity < 5) return;
+
+        push();
+        // 1. 绘制颗粒
+        for (let t of this.waterTrails) {
+          stroke(180, 190, 200, t.opacity * (this.displayOpacity / 255));
+          strokeWeight(t.thickness * scaleFactor);
+          line(t.x, t.y, t.x, t.y + t.len * scaleFactor);
+        }
+
+        // 2. 绘制【绝对完整】的波浪线
+        for (let i = 0; i < 2; i++) {
+          let yOff = i * 4 * scaleFactor;
+          let alpha = i === 0 ? 255 : 80;
+          stroke(0, alpha * (this.displayOpacity / 255));
+          strokeWeight(i === 0 ? 1.5 * scaleFactor : 0.8 * scaleFactor);
+          noFill();
+          this.drawSingleLongWave(yOff);
+        }
+
+        // 3. 【核心步骤】遮挡线条 - 使用网页背景色
+        let gapWidth = this.textBaseWidth * this.currentTextScale;
+        if (gapWidth > 0.5) {
+          noStroke();
+          // Tablet mode fix: Ensure background color matches body color #F2F2F1 (242, 242, 241)
+          fill(242, 242, 241); 
+          rectMode(CENTER);
+          rect(this.centerX, this.currentY + 2 * scaleFactor, gapWidth, 20 * scaleFactor); 
+        }
+
+        // 4. 绘制文字
+        if (this.currentTextScale > 0.02) {
+          push();
+          translate(this.centerX, this.currentY + 2 * scaleFactor);
+          scale(this.currentTextScale, 1.0);
+          noStroke();
+          // Tablet mode: Ensure text is visible (black)
+          fill(0, this.displayOpacity * Math.pow(this.currentTextScale, 1.5));
+          textAlign(CENTER, CENTER);
+          textSize(16 * scaleFactor);
+          text(this.txt, 0, 0);
+          pop();
+        }
+        pop();
+      }
+
+      // 只画一根线，从头到尾
+      drawSingleLongWave(yOffset) {
+        beginShape();
+        let gapHalf = (this.textBaseWidth * this.currentTextScale) / 2;
+        
+        curveVertex(-20, this.currentY + yOffset);
+        for (let x = 0; x <= width; x += 15 * scaleFactor) {
+          let nx = x * 0.004 / scaleFactor;
+          let noiseVal = noise(nx, this.noiseSeed + yOffset);
+          let baseMod = map(noiseVal, 0, 1, -25, 25) * config.waveCurvature * scaleFactor;
+          
+          // 平滑逻辑：在文字区域把波浪压平
+          let distToCenter = abs(x - this.centerX);
+          let taper = map(distToCenter, gapHalf * 0.5, gapHalf * 1.5, 0, 1, true);
+          if (this.currentTextScale < 0.1) taper = 1;
+
+          curveVertex(x, this.currentY + yOffset + baseMod * taper);
+        }
+        curveVertex(width + 20, this.currentY + yOffset);
+        endShape();
+      }
+
+      generateFullWidthTrails() {
+        for (let i = 0; i < config.trailDensity; i++) {
+          let rx = random(0, width);
+          let gapHalf = (this.textBaseWidth * this.currentTextScale) / 2;
+          // 颗粒也不要在文字遮挡区产生
+          if (rx > this.centerX - gapHalf && rx < this.centerX + gapHalf) continue;
+
+          this.waterTrails.push({
+            x: rx, 
+            y: this.currentY + random(-5, 5) * scaleFactor,
+            len: random(30, 80), 
+            speed: random(4, 8),
+            thickness: random(0.5, 1.8), 
+            opacity: random(100, 200)
+          });
+        }
+      }
+
+
+      checkClick(mx, my) {
+        if (activeWaveIdx === -1 && abs(my - this.currentY) < 35 * scaleFactor) {
+          this.state = 'RISING';
+          activeWaveIdx = this.id;
+          hasBeenClicked = true;
+          for(let i=0; i<60; i++) this.generateFullWidthTrails();
+        }
+      }
+    }
+
+    function mousePressed() {
+      for (let w of waves) w.checkClick(mouseX, mouseY);
+    }
+
+    function drawUI() {
+      // 移除 P5.js Canvas 容器里的 "Works." 标题
+    }
+
+    // ================= 图片展示功能 =================
+    function initImageGalleries() {
+      // 初始化 Graphic Design 图片网格
+      initGraphicDesignGallery();
+      // 初始化 Visual Display 图片随机分布
+      initVisualDisplayGallery();
+      // 初始化 Social Media
+      initSocialMediaGallery();
+    }
+
+    function initGraphicDesignGallery() {
+      if (!graphicDesignGallery) return;
+      graphicDesignGallery.innerHTML = '';
+      
+      // 动态计算 Graphic Design 容器的位置和高度
+      const titleElement = document.querySelector('.page-title');
+      let canvasWidth = windowWidth;
+      let canvasHeight = isMobileMode ? 500 : (canvasWidth * (623 / 1280) - 20);
+      let lastLineY = canvasHeight - config.paddingBottom * scaleFactor;
+      // 关键修改：使用 compressed 间距来计算波浪线位置，防止图片与压缩后的波浪线重叠
+      let effectiveGap = isMobileMode ? config.lineGapCompressed : config.lineGapInitial;
+      let firstLineY = lastLineY - (2 * effectiveGap * scaleFactor);
+      
+      let galleryHeight = 500;
+      
+      // Add tablet check
+      let isTabletMode = windowWidth > 480 && windowWidth <= 1200;
+
+      if (titleElement) {
+        const titleRect = titleElement.getBoundingClientRect();
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const topPos = titleRect.bottom + scrollTop + 10; // 标题下方留白，加上滚动偏移
+        
+        if (!isMobileMode) {
+          if (isTabletMode) {
+             // Tablet: Calculate available space above waves
+             const canvasTop = window.innerHeight - canvasHeight - 10;
+             const waveTopY = canvasTop + firstLineY;
+             
+             // Calculate available height: Wave Top - Gallery Top - Padding
+             // We want the image to stop a bit above the wave
+             const availableHeight = waveTopY - topPos - 20;
+             
+             graphicDesignGallery.style.top = topPos + 'px';
+             graphicDesignGallery.style.height = Math.max(100, availableHeight) + 'px'; // Ensure min height
+             graphicDesignGallery.style.maxHeight = Math.max(100, availableHeight) + 'px';
+             graphicDesignGallery.style.paddingBottom = '0'; 
+          } else {
+             // Desktop: Canvas top is 40px
+             const canvasTop = 40;
+             const waveTopY = canvasTop + firstLineY; // 波浪线相对于文档顶部的Y坐标
+             
+             const availableHeight = waveTopY - topPos - 10 + 50 - 35; 
+             
+             graphicDesignGallery.style.top = topPos + 'px';
+             graphicDesignGallery.style.height = availableHeight + 'px';
+             // 确保图片不覆盖波浪线
+             graphicDesignGallery.style.maxHeight = availableHeight + 'px';
+          }
+        } else {
+          // 移动端：样式由 CSS 控制 (height: calc(100vh - 100px))
+          // 清除 JS 设置的样式，防止干扰
+          graphicDesignGallery.style.top = '';
+          graphicDesignGallery.style.height = '';
+          graphicDesignGallery.style.maxHeight = '';
+        }
+      }
+
+        // 随机顺序数组
+        const randomIndices = Array.from({length: workImages.length}, (_, i) => i);
+        // Shuffle
+        for (let i = randomIndices.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [randomIndices[i], randomIndices[j]] = [randomIndices[j], randomIndices[i]];
+        }
+        
+        workImages.forEach((imgPath, index) => {
+          const item = document.createElement('div');
+          // ... (省略创建元素代码) ...
+          item.className = 'gallery-item graphic-design';
+          
+          const wrapper = document.createElement('div');
+          wrapper.className = 'image-wrapper';
+          
+          const img = document.createElement('img');
+          img.src = imgPath;
+          img.alt = `Graphic Design ${index + 1}`;
+          // 移除直接打开Modal的事件，改为在 item 上处理
+          // img.onclick = () => openModal(imgPath);
+          
+          img.onload = () => {
+               if (img.offsetHeight > wrapper.offsetHeight * 1.1) {
+                   item.classList.add('long-image');
+               }
+          };
+          
+          const pinPath = seashellPins[Math.floor(Math.random() * seashellPins.length)];
+          const pin = document.createElement('div');
+          pin.className = 'pin';
+          const pinImg = document.createElement('img');
+          pinImg.src = pinPath;
+          pinImg.alt = 'Pin';
+          pin.appendChild(pinImg);
+          
+          wrapper.appendChild(img);
+          item.appendChild(wrapper);
+          item.appendChild(pin);
+          
+          // 设置随机动画延迟
+          // 找到当前 index 在随机数组中的位置（顺序）
+          const delayOrder = randomIndices.indexOf(index);
+          item.style.animationDelay = `${delayOrder * 0.15}s`; // 增加一点间隔 0.1 -> 0.15
+          
+          // 绑定点击交互
+          item.onclick = (e) => handleImageClick(e, item, imgPath, 'graphic');
+          
+          graphicDesignGallery.appendChild(item);
+        });
+    }
+
+    function initVisualDisplayGallery() {
+      if (!visualDisplayGallery) return;
+      visualDisplayGallery.innerHTML = '';
+      
+      // 延迟执行以确保DOM已渲染
+      setTimeout(() => {
+        // 获取标题和波浪线的位置范围
+        const titleElement = document.querySelector('.page-title');
+        
+        // 重新计算波浪线顶部位置
+        let canvasWidth = windowWidth;
+        let canvasHeight = canvasWidth * (623 / 1280) - 20;
+        let lastLineY = canvasHeight - config.paddingBottom * scaleFactor;
+        let firstLineY = lastLineY - (2 * config.lineGapInitial * scaleFactor);
+        
+        if (!titleElement) return;
+        
+        const titleRect = titleElement.getBoundingClientRect();
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        
+        // Default Desktop Boundaries (Document Relative)
+        let topBoundary = titleRect.bottom + scrollTop + 10; 
+        let leftBoundary = 24;
+        let rightBoundary = window.innerWidth - 24;
+        
+        // Canvas top is 40px
+        const canvasTop = 40;
+        let bottomBoundary;
+
+        let isTabletMode = windowWidth > 480 && windowWidth <= 1200;
+
+        if (isMobileMode) {
+             // Mobile Adjustments
+             // 1. Vertical: Relative to container (top: 90px)
+             topBoundary = 0; // Start from top of container
+             
+             // Container Height calculation: Window - Top(90) - Bottom(220)
+             // We set bottomBoundary as the max Y coordinate available in the container
+             // 增加底部留白，确保图片不会太靠下
+             bottomBoundary = window.innerHeight - 90 - 240;   
+             
+             // 2. Horizontal: Wider spread (Reduce margin)
+             const marginX = 10; // Fixed small margin to reduce whitespace
+             leftBoundary = marginX;
+             rightBoundary = window.innerWidth - marginX;
+             
+        } else if (isTabletMode) {
+             // Tablet: Use viewport height with some padding
+             bottomBoundary = window.innerHeight - 150;
+        } else {
+             // Desktop
+             bottomBoundary = canvasTop + firstLineY - 10 + 30; 
+        }
+        
+        // 存储已放置图片的区域，用于碰撞检测
+        const placedRects = [];
+
+        displayImages.forEach((imgPath, index) => {
+          const item = document.createElement('div');
+          item.className = 'gallery-item visual-display';
+          
+          // 根据移动端调整占位尺寸，与CSS保持一致
+          const imgWidth = isMobileMode ? 85 : 150; 
+          const imgHeight = isMobileMode ? 110 : 180;
+          
+          const minX = leftBoundary;
+          const maxX = Math.max(minX, rightBoundary - imgWidth);
+          const minY = topBoundary;
+          const maxY = Math.max(minY, bottomBoundary - imgHeight);
+          
+          // 尝试多次放置，避免严重重叠
+          let bestX = minX;
+          let bestY = minY;
+          let minOverlap = Infinity;
+          let foundGoodSpot = false;
+
+          for (let attempt = 0; attempt < 100; attempt++) { 
+             const x = Math.random() * (maxX - minX) + minX;
+             const y = Math.random() * (maxY - minY) + minY;
+             
+             // 计算当前尝试位置与所有已放置图片的重叠面积总和
+             let totalOverlapArea = 0;
+             const currentRect = { x: x, y: y, w: imgWidth, h: imgHeight };
+             
+             for (const rect of placedRects) {
+               const overlapW = Math.max(0, Math.min(x + imgWidth, rect.x + rect.w) - Math.max(x, rect.x));
+               const overlapH = Math.max(0, Math.min(y + imgHeight, rect.y + rect.h) - Math.max(y, rect.y));
+               totalOverlapArea += overlapW * overlapH;
+             }
+             
+             const selfArea = imgWidth * imgHeight;
+             const overlapRatio = totalOverlapArea / selfArea;
+             
+             // 记录最佳位置（重叠最小）
+             if (overlapRatio < minOverlap) {
+               minOverlap = overlapRatio;
+               bestX = x;
+               bestY = y;
+             }
+             
+             // 如果重叠少于10%，直接使用
+             if (overlapRatio < 0.1) {
+               foundGoodSpot = true;
+               break;
+             }
+          }
+          
+          placedRects.push({ x: bestX, y: bestY, w: imgWidth, h: imgHeight });
+          
+          const rotation = Math.random() * 30 - 15; // 增加旋转角度 -15 到 +15 度
+          
+          // 保存最终位置到 dataset
+          item.dataset.finalX = bestX;
+          item.dataset.finalY = bestY;
+          item.dataset.finalRot = rotation;
+          
+          // 初始位置：从导航栏下方的一条线散落，且水平位置接近最终落点
+          const startOffset = (Math.random() - 0.5) * 100; // 左右偏移 -50px 到 50px
+          const startX = bestX + startOffset;
+          const startY = isMobileMode ? 0 : 120; // 移动端从容器顶部(0)开始，桌面端从120开始
+
+          item.style.left = startX + 'px';
+          item.style.top = startY + 'px';
+          item.style.transform = 'rotate(0deg)';
+          item.style.opacity = '0'; // 初始透明
+          item.style.transition = 'none'; // 初始禁止 transition
+          
+          const img = document.createElement('img');
+          img.src = imgPath;
+          img.alt = `Visual Display ${index + 1}`;
+          // 移除直接打开Modal的事件
+          // img.onclick = () => openModal(imgPath);
+          
+          // 绑定点击交互
+          item.onclick = (e) => handleImageClick(e, item, imgPath, 'visual');
+          
+          // 随机选择图钉
+          const pinPath = seashellPins[Math.floor(Math.random() * seashellPins.length)];
+          const pin = document.createElement('div');
+          pin.className = 'pin'; // 默认 pin 样式里 opacity: 0
+          const pinImg = document.createElement('img');
+          pinImg.src = pinPath;
+          pinImg.alt = 'Pin';
+          pin.appendChild(pinImg);
+          
+          item.appendChild(img);
+          item.appendChild(pin);
+          visualDisplayGallery.appendChild(item);
+        });
+        
+        // 如果当前应该是显示状态（比如 resize 后），立即触发动画
+        // 或者是第一次加载且已经处于显示状态
+        if (visualDisplayGallery.classList.contains('show') || (currentDisplayedImageId === 1 && !visualDisplayGallery.style.display.includes('none'))) {
+           // 确保 display 是 block
+           visualDisplayGallery.style.display = 'block';
+           visualDisplayGallery.classList.add('show');
+           runVisualDisplayAnimation();
+        }
+        
+      }, 100);
+    }
+    
+    // 运行 Visual Display 的散落动画
+    function runVisualDisplayAnimation() {
+      if (!visualDisplayGallery) return;
+      
+      const items = visualDisplayGallery.querySelectorAll('.gallery-item.visual-display');
+      if (items.length === 0) return; 
+
+      // 1. 重置状态：分布在导航栏下方的一条线上且透明
+      items.forEach((item, index) => {
+        const finalX = parseFloat(item.dataset.finalX);
+        const startOffset = (Math.random() - 0.5) * 100; // 左右偏移 -50px 到 50px
+        const startX = finalX + startOffset;
+        const startY = isMobileMode ? 0 : 120; // 移动端从容器顶部(0)开始
+        
+        item.style.transition = 'none';
+        item.style.left = startX + 'px';
+        item.style.top = startY + 'px';
+        item.style.transform = `rotate(0deg)`;
+        item.style.opacity = '0';
+        item.style.zIndex = index + 1;
+        
+        // 重置图钉
+        const pin = item.querySelector('.pin');
+        if (pin) pin.classList.remove('pinned');
+      });
+      
+      // 强制重绘
+      void visualDisplayGallery.offsetWidth;
+      
+      // 2. 直接开始随机先后落位 (Direct Scatter)
+      setTimeout(() => {
+        // 创建一个随机索引数组
+        const indices = Array.from({ length: items.length }, (_, i) => i);
+        // Shuffle
+        for (let i = indices.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [indices[i], indices[j]] = [indices[j], indices[i]];
+        }
+        
+        indices.forEach((itemIndex, i) => {
+          const item = items[itemIndex];
+          const finalX = parseFloat(item.dataset.finalX);
+          const finalY = parseFloat(item.dataset.finalY);
+          const finalRot = parseFloat(item.dataset.finalRot);
+          
+          // 延迟时间：每张卡片间隔150ms (变慢)
+          const delay = i * 150; 
+          
+          setTimeout(() => {
+            // 恢复 transition
+            // cubic-bezier(0.34, 1.56, 0.64, 1) 是带有回弹的
+            // 改为 cubic-bezier(0.2, 0.8, 0.2, 1) 这种平滑减速的 ease-out 曲线，像羽毛飘落
+            // 增加 duration 到 1.2s
+            item.style.transition = 'transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1), left 1.2s cubic-bezier(0.2, 0.8, 0.2, 1), top 1.2s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.8s ease';
+            
+            item.style.transform = `rotate(${finalRot}deg)`;
+            item.style.opacity = '1'; // 渐显
+            
+            if (!isNaN(finalX) && !isNaN(finalY)) {
+                item.style.left = finalX + 'px';
+                item.style.top = finalY + 'px';
+            }
+            
+            // 3. 落位后图钉渐显
+            setTimeout(() => {
+               const pin = item.querySelector('.pin');
+               if (pin) pin.classList.add('pinned');
+            }, 1200); // 等待图片到位
+            
+            // 动画完成后，移除 left/top 的 transition
+            setTimeout(() => {
+                item.style.transition = 'transform 0.3s ease, opacity 0.5s ease, box-shadow 0.3s ease';
+            }, 1500);
+            
+          }, delay);
+        });
+        
+      }, 100); // 短暂延迟后直接开始
+    }
+
+    // ================= Social Media Gallery Logic (Accordion 2.0) =================
+    
+    let allSocialPosts = [];
+    let currentSortMode = 'date'; // 'date' or 'popular'
+    const PAGE_WIDTH = 320; // Must match CSS
+    let activePairIndex = 0; // The index of the LEFT page of the active pair (0, 2, 4...)
+
+    function initSocialMediaGallery() {
+      if (!socialMediaGallery) return;
+      socialMediaGallery.innerHTML = '';
+      
+      // 1. Create Sort Control Bar
+      const sortBar = document.createElement('div');
+      sortBar.className = 'sort-bar';
+      // Ensure clicks are captured
+      sortBar.style.pointerEvents = 'auto';
+      
+      const btnDate = document.createElement('button');
+      btnDate.className = 'sort-btn active';
+      btnDate.textContent = 'Date';
+      // Use addEventListener for better reliability
+      btnDate.addEventListener('click', (e) => {
+          e.stopPropagation();
+          console.log('Sort by Date clicked');
+          handleSortChange('date', btnDate, btnPopular);
+      });
+      
+      const btnPopular = document.createElement('button');
+      btnPopular.className = 'sort-btn';
+      btnPopular.textContent = 'Popularity';
+      btnPopular.addEventListener('click', (e) => {
+          e.stopPropagation();
+          console.log('Sort by Popularity clicked');
+          handleSortChange('popular', btnPopular, btnDate);
+      });
+      
+      sortBar.appendChild(btnDate);
+      sortBar.appendChild(btnPopular);
+      socialMediaGallery.appendChild(sortBar);
+      
+      // 2. Create 3D Stage
+      const stage = document.createElement('div');
+      stage.className = 'accordion-stage';
+      stage.id = 'accordionStage';
+      socialMediaGallery.appendChild(stage);
+
+      // --- Add Swipe/Drag Listeners ---
+      let swipeStartX = 0;
+      let swipeStartY = 0;
+      let isSwiping = false;
+
+      // Mouse Events
+      stage.addEventListener('mousedown', (e) => {
+          // Only trigger if clicking on a page
+          if (e.target.closest('.folder-page')) {
+              isSwiping = true;
+              swipeStartX = e.clientX;
+              swipeStartY = e.clientY;
+          }
+      });
+
+      window.addEventListener('mousemove', (e) => {
+          if (!isSwiping) return;
+          // Optional: Visual feedback during drag could go here
+      });
+
+      window.addEventListener('mouseup', (e) => {
+          if (!isSwiping) return;
+          isSwiping = false;
+          handleSwipeEnd(e.clientX, e.clientY);
+      });
+
+      // Touch Events
+      stage.addEventListener('touchstart', (e) => {
+          if (e.target.closest('.folder-page') && e.touches.length === 1) {
+              isSwiping = true;
+              swipeStartX = e.touches[0].clientX;
+              swipeStartY = e.touches[0].clientY;
+          }
+      }, {passive: true});
+
+      stage.addEventListener('touchend', (e) => {
+          if (!isSwiping) return;
+          isSwiping = false;
+          if (e.changedTouches.length > 0) {
+              handleSwipeEnd(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+          }
+      });
+
+      function handleSwipeEnd(endX, endY) {
+          const deltaX = endX - swipeStartX;
+          const deltaY = endY - swipeStartY;
+          
+          // Thresholds
+          const minSwipeDistance = 50;
+          
+          // Check if horizontal swipe dominates
+          if (Math.abs(deltaX) > minSwipeDistance && Math.abs(deltaX) > Math.abs(deltaY)) {
+              if (deltaX > 0) {
+                  // Swipe Right -> Prev Page
+                  navigateGallery(-1);
+              } else {
+                  // Swipe Left -> Next Page
+                  navigateGallery(1);
+              }
+          }
+      }
+
+      // 3. Prepare Data
+      allSocialPosts = [];
+      socialMediaData.forEach(accountData => {
+        accountData.posts.forEach(post => {
+          allSocialPosts.push({
+            ...post,
+            account: accountData.account,
+            platform: accountData.platform
+          });
+        });
+      });
+      
+      // Dynamic positioning
+      const titleElement = document.querySelector('.page-title');
+      if (titleElement) {
+         const titleRect = titleElement.getBoundingClientRect();
+         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+         
+         const topPos = titleRect.bottom + scrollTop; 
+         
+         // 动态计算高度（包含移动端和桌面端）
+         let waveAbsTop;
+         let isTabletMode = windowWidth > 480 && windowWidth <= 1200;
+         
+         if (isMobileMode) {
+             // 移动端 Canvas 固定在底部
+             // Canvas 高度 500, top = windowHeight - 500
+             const canvasH = 500;
+             const canvasTop = window.innerHeight - canvasH;
+             
+             // 波浪线在 Canvas 内部的坐标
+             // lastLineY = 500 - paddingBottom * scale
+             // firstLineY = lastLineY - 2 * gap * scale
+             // 注意：这里必须使用当前的 config 和 scaleFactor
+             const lastLineY = canvasH - config.paddingBottom * scaleFactor;
+             const firstLineY = lastLineY - (2 * config.lineGapInitial * scaleFactor);
+             
+             // 波浪线绝对位置 = CanvasTop + firstLineY
+             waveAbsTop = canvasTop + firstLineY;
+             
+             // 顶部位置：标题下方 + 留白
+              // 移动端标题较大，topPos 可能会比较大，我们给它一个最小 marginTop
+              // 增加 30px 给 Sort Bar 留出空间
+              const mobileTop = Math.max(topPos, 90) + 35; 
+              
+              // 可用高度 = 波浪线顶部 - 顶部位置 - 底部安全距离
+              const safetyMargin = 20; // 避免紧贴波浪
+             const newHeight = waveAbsTop - mobileTop - safetyMargin;
+             
+             socialMediaGallery.style.top = mobileTop + 'px';
+             socialMediaGallery.style.height = Math.max(200, newHeight) + 'px'; // 最小高度保护
+             
+         } else if (isTabletMode) {
+             // Tablet: Canvas Fixed at Bottom
+             let canvasWidth = windowWidth;
+             let canvasHeight = canvasWidth * (623 / 1280) - 20;
+             let lastLineY = canvasHeight - config.paddingBottom * scaleFactor;
+             let firstLineY = lastLineY - (2 * config.lineGapInitial * scaleFactor);
+             
+             // Wave Top relative to Viewport (canvas is at bottom - 10px)
+             let waveViewportTop = (window.innerHeight - canvasHeight - 10) + firstLineY;
+             
+             // Available height relative to document top (assuming scrolled to top)
+             // We use topPos (document relative)
+             
+             // If we assume initial load is at top:
+             waveAbsTop = waveViewportTop + (window.pageYOffset || 0);
+             
+             // Subtract margin to avoid overlap (shorten the bottom)
+             const newHeight = waveAbsTop - topPos - 40; 
+             socialMediaGallery.style.top = topPos + 'px';
+             // Use a safer min-height, or allow it to be smaller if space is tight
+             socialMediaGallery.style.height = Math.max(300, newHeight) + 'px';
+             
+         } else {
+            // Desktop
+            let canvasWidth = windowWidth;
+            let canvasHeight = canvasWidth * (623 / 1280) - 20;
+            let lastLineY = canvasHeight - config.paddingBottom * scaleFactor;
+            let firstLineY = lastLineY - (2 * config.lineGapInitial * scaleFactor);
+            
+            waveAbsTop = 40 + firstLineY;
+            const newHeight = waveAbsTop - topPos + 10;
+            
+            socialMediaGallery.style.top = topPos + 'px';
+            socialMediaGallery.style.height = newHeight + 'px';
+         }
+         
+         // Force pointer events for Sort Bar container
+         socialMediaGallery.style.pointerEvents = 'none'; 
+      }
+      
+      // Initial Render (moved after positioning so height is correct)
+      renderSocialMediaGallery();
+    }
+
+    function handleSortChange(mode, activeBtn, otherBtn) {
+      if (currentSortMode === mode) return;
+      currentSortMode = mode;
+      
+      activeBtn.classList.add('active');
+      otherBtn.classList.remove('active');
+      
+      // Reset to first page
+      activePairIndex = 0;
+      
+      // Re-render with animation
+      const stage = document.getElementById('accordionStage');
+      stage.style.opacity = 0;
+      
+      setTimeout(() => {
+        renderSocialMediaGallery();
+        stage.style.opacity = 1;
+      }, 300);
+    }
+
+    function renderSocialMediaGallery() {
+      const stage = document.getElementById('accordionStage');
+      if (!stage) return;
+      stage.innerHTML = '';
+      
+      // 1. Sort Data
+      const sortedPosts = [...allSocialPosts];
+      
+      // Filter out posts with empty title
+      // But we should keep them if they are valid.
+      
+      if (currentSortMode === 'date') {
+        sortedPosts.sort((a, b) => {
+           const dateA = parseDate(a.date);
+           const dateB = parseDate(b.date);
+           return dateB - dateA; // Newest first
+        });
+      } else {
+        sortedPosts.sort((a, b) => {
+           const scoreA = parseMetric(a.likes) + parseMetric(a.favs) + parseMetric(a.views)/100;
+           const scoreB = parseMetric(b.likes) + parseMetric(b.favs) + parseMetric(b.views)/100;
+           return scoreB - scoreA; // Highest score first
+        });
+      }
+      
+      // 2. Pagination (Create Pages)
+      // Calculate capacity per page
+      // Reset height if not detected correctly (e.g. if hidden)
+      const galleryHeight = socialMediaGallery.clientHeight > 100 ? socialMediaGallery.clientHeight : 500;
+      
+      // 根据移动端调整项目高度和布局
+      let itemHeight = 80;
+      // Add tablet check
+      let isTabletMode = windowWidth > 480 && windowWidth <= 1200;
+
+      if (isMobileMode) {
+          // 移动端可能需要更紧凑或更宽松，视乎宽度
+          // 由于宽度变窄(44vw)，文字可能换行更多，且允许3行标题
+          itemHeight = 100; 
+      }
+      
+      let postsPerPage;
+      if (isTabletMode) {
+          // Tablet: Fixed 4 posts per page
+          postsPerPage = 4;
+      } else {
+          // Use more space (Desktop/Mobile dynamic)
+          postsPerPage = Math.max(2, Math.floor((galleryHeight * 0.85) / itemHeight)); 
+      }
+      
+      const pageCount = Math.ceil(sortedPosts.length / postsPerPage);
+      // Ensure even number of pages for pairing
+      const totalPages = pageCount % 2 === 0 ? pageCount : pageCount + 1;
+      
+      for (let i = 0; i < totalPages; i++) {
+        const page = document.createElement('div');
+        page.className = 'folder-page';
+        page.dataset.index = i;
+        page.onclick = () => handlePageClick(i);
+        
+        // Add Ripple Layer
+        const ripple = document.createElement('div');
+        ripple.className = 'ripple-layer';
+        page.appendChild(ripple);
+        
+        // Add Content
+        const contentWrapper = document.createElement('div');
+        contentWrapper.className = 'page-content-wrapper';
+        
+        const postsList = document.createElement('div');
+        postsList.className = 'posts-list';
+        
+        const startIdx = i * postsPerPage;
+        const endIdx = startIdx + postsPerPage;
+        const pagePosts = sortedPosts.slice(startIdx, endIdx);
+        
+        if (pagePosts.length > 0) {
+            pagePosts.forEach(post => {
+                const postItem = createPostItem(post);
+                postsList.appendChild(postItem);
+            });
+        } else {
+            // Empty filler page - No text
+        }
+        
+        contentWrapper.appendChild(postsList);
+        page.appendChild(contentWrapper);
+        stage.appendChild(page);
+      }
+      
+      // 3. Update Layout
+      update3DLayout(totalPages);
+    }
+    
+    function navigateGallery(direction) {
+      const pages = document.querySelectorAll('.folder-page');
+      if (pages.length === 0) return;
+      
+      let newIndex = activePairIndex + (direction * 2);
+      
+      // Boundary checks
+      // If going prev and we are at 0, stay at 0
+      if (newIndex < 0) newIndex = 0;
+      
+      // If going next and we are at the end
+      // activePairIndex can be at most totalPages - 2 (or -1 if odd)
+      // If we are at the last pair, we can't go further
+      if (newIndex >= pages.length) {
+          // If odd number of pages, last index is length-1.
+          // If even, last index is length-1.
+          // activePairIndex logic: even numbers.
+          // Max start index for a pair is length-2 (if even) or length-1 (if odd)
+          newIndex = activePairIndex; 
+      }
+      
+      if (newIndex !== activePairIndex) {
+          activePairIndex = newIndex;
+          update3DLayout(pages.length);
+      }
+    }
+
+    function handlePageClick(index) {
+      // If clicking an active page, do nothing
+      if (index === activePairIndex || index === activePairIndex + 1) return;
+      
+      // Set new active pair
+      // If index is even, it becomes the left page of the pair
+      // If index is odd, it becomes the right page of the pair (so left is index-1)
+      if (index % 2 === 0) {
+        activePairIndex = index;
+      } else {
+        activePairIndex = index - 1;
+      }
+      
+      // Boundary check
+      const pages = document.querySelectorAll('.folder-page');
+      if (activePairIndex >= pages.length) activePairIndex = pages.length - 2;
+      if (activePairIndex < 0) activePairIndex = 0;
+      
+      // Calculate totalPages for update3DLayout
+      const pageCount = pages.length;
+      update3DLayout(pageCount);
+    }
+
+    function update3DLayout(totalPages) {
+      const pages = document.querySelectorAll('.folder-page');
+      if (pages.length === 0) return;
+      
+      if (!totalPages) totalPages = pages.length;
+
+      let W = 320; // Page width
+      let FOLD_ANGLE = 75; // Steeper angle for folded pages
+      const OPEN_ANGLE = 10; // Gentle angle for active pages (V-shape)
+      
+      if (isMobileMode) {
+         // Mobile adjustments
+         if (pages[0]) W = pages[0].offsetWidth; // Use actual width
+         FOLD_ANGLE = 85; // Tighter fold on mobile to save space
+      }
+
+      // Calculate Spine Position based on active pair
+      const maxIndex = Math.max(1, totalPages - 2);
+      const progress = activePairIndex / maxIndex;
+      
+      // Camera movement
+      let spineLeftPercent;
+      if (isMobileMode) {
+         // Mobile: Center the spine to show both pages (Spread View)
+         spineLeftPercent = 50; 
+      } else {
+         // Desktop: Pan from Left to Right
+         spineLeftPercent = 30 + progress * 40; 
+      }
+      
+      const containerWidth = document.getElementById('socialMediaGallery').offsetWidth || window.innerWidth;
+      const spineX = containerWidth * (spineLeftPercent / 100);
+
+      // We calculate positions relative to the Spine.
+      // Left pages (indices 0 to activePairIndex) attach to the left of spine.
+      // Right pages (indices activePairIndex+1 to end) attach to the right of spine.
+
+      // --- Process Left Side (Iterate backwards from active left) ---
+      let currentX = spineX;
+      let currentZ = 0;
+      
+      for (let i = activePairIndex; i >= 0; i--) {
+          const page = pages[i];
+          let angle = 0;
+          
+          if (i === activePairIndex) {
+              // Active Left Page: Slight angle (Left edge comes forward)
+              angle = OPEN_ANGLE; 
+          } else {
+              // Stacked Pages: Zig-zag
+              // Distance from active page
+              const dist = activePairIndex - i;
+              // dist=1 (idx-1): Should fold BACK (-angle)
+              // dist=2 (idx-2): Should fold FORWARD (+angle)
+              angle = (dist % 2 === 1) ? -FOLD_ANGLE : FOLD_ANGLE;
+          }
+          
+          // Origin is Right
+          page.style.transformOrigin = 'right center';
+          // Position the element so its Right Edge is at (currentX, currentZ)
+          // Since element width is W, left is at -W relative to origin.
+          // Translate to move Right Edge (Origin) to currentX
+          page.style.transform = `translate3d(${currentX - W}px, 0px, ${currentZ}px) rotateY(${angle}deg)`;
+          
+          // Reset other positioning properties
+          page.style.left = '0px';
+          page.style.marginLeft = '0px'; 
+          page.style.zIndex = 100 - (activePairIndex - i);
+          page.classList.remove('active');
+          if (i === activePairIndex) page.classList.add('active');
+
+          // Update hinge for NEXT page (to the left)
+          // The Left Edge of CURRENT page becomes the Right Edge of NEXT page.
+          // Calculate Left Edge position relative to Right Edge (Origin):
+          // Delta X = -W * cos(angle)
+          // Delta Z = W * sin(angle) (Positive angle = Left edge comes forward Z+)
+          
+          const rad = angle * Math.PI / 180;
+          currentX -= W * Math.cos(rad);
+          currentZ += W * Math.sin(rad);
+          
+          // Shadows
+          page.classList.remove('shadow-light', 'shadow-medium', 'shadow-heavy');
+          if (Math.abs(angle) > 20) {
+              if (angle < 0) page.classList.add('shadow-medium'); // Folded back
+              else page.classList.add('shadow-light');
+          }
+      }
+
+      // --- Process Right Side (Iterate forwards from active right) ---
+      currentX = spineX;
+      currentZ = 0;
+      
+      for (let i = activePairIndex + 1; i < totalPages; i++) {
+          const page = pages[i];
+          let angle = 0;
+          
+          if (i === activePairIndex + 1) {
+              // Active Right Page: Slight angle (Right edge comes forward)
+              angle = -OPEN_ANGLE; 
+          } else {
+              // Stacked Pages: Zig-zag
+              const dist = i - (activePairIndex + 1);
+              // dist=1 (idx+2): Should fold BACK (+angle for Left Origin means Right Edge goes Back)
+              // Wait: +Angle on Left Origin -> Right Edge goes BACK (-Z).
+              // So we want +FOLD_ANGLE.
+              angle = (dist % 2 === 1) ? FOLD_ANGLE : -FOLD_ANGLE;
+          }
+          
+          // Origin is Left
+          page.style.transformOrigin = 'left center';
+          // Position the element so its Left Edge is at (currentX, currentZ)
+          page.style.transform = `translate3d(${currentX}px, 0px, ${currentZ}px) rotateY(${angle}deg)`;
+          
+          page.style.left = '0px';
+          page.style.marginLeft = '0px';
+          page.style.zIndex = 100 - (i - (activePairIndex + 1));
+          page.classList.remove('active');
+          if (i === activePairIndex + 1) page.classList.add('active');
+          
+          // Update hinge for NEXT page (to the right)
+          // Right Edge of CURRENT page becomes Left Edge of NEXT.
+          // Delta X = W * cos(angle)
+          // Delta Z = -W * sin(angle) (Negative angle = Right edge comes forward Z+)
+          
+          const rad = angle * Math.PI / 180;
+          currentX += W * Math.cos(rad);
+          currentZ -= W * Math.sin(rad); 
+          
+          // Shadows
+          page.classList.remove('shadow-light', 'shadow-medium', 'shadow-heavy');
+          if (Math.abs(angle) > 20) {
+              // For Right side (Left Origin):
+              // +Angle: Right edge goes Back (Shadow)
+              // -Angle: Right edge comes Forward (Light)
+              if (angle > 0) page.classList.add('shadow-medium'); 
+              else page.classList.add('shadow-light');
+          }
+      }
+    }
+
+    // Helper functions
+    function parseDate(dateStr) {
+      // 12/17/24
+      const parts = dateStr.split('/');
+      if (parts.length === 3) {
+        let y = parseInt(parts[2]);
+        if (y < 100) y += 2000;
+        return new Date(y, parseInt(parts[0])-1, parseInt(parts[1]));
+      }
+      return new Date();
+    }
+    
+    function parseMetric(val) {
+      if (!val || val === '-') return 0;
+      let num = parseFloat(val.replace(/,/g, ''));
+      if (val.toLowerCase().includes('k')) num *= 1000;
+      if (val.toLowerCase().includes('w')) num *= 10000;
+      return isNaN(num) ? 0 : num;
+    }
+
+    function createPostItem(post) {
+      const postItem = document.createElement('div');
+      postItem.className = 'post-item';
+      
+      const titleRow = document.createElement('div');
+      titleRow.className = 'post-title-row';
+      
+      const postTitle = document.createElement('a');
+      postTitle.className = 'post-title';
+      postTitle.href = post.link;
+      const cleanAccount = post.account.split(' ')[0]; 
+      
+      // Mobile: 3 lines, Date: YY/M/D
+      // Desktop: 2 lines, Date: YYYY/M/D
+      const lineClamp = isMobileMode ? 3 : 2;
+      
+      postTitle.innerHTML = `
+        <div style="font-size: 11px; color: #888;">@${cleanAccount}</div>
+        <div style="font-family: 'Noto Sans HK', sans-serif; white-space: normal; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: ${lineClamp}; -webkit-box-orient: vertical; overflow: hidden;">${post.title}</div>`;
+      postTitle.target = "_blank";  
+      
+      const postDate = document.createElement('div');
+      postDate.className = 'post-date';
+      let formattedDate = post.date;
+      
+      const dateParts = post.date.split('/');
+      if (dateParts.length === 3) {
+          if (isMobileMode) {
+              // Format: YY/M/D (e.g. 25/4/3)
+              // dateParts[2] is usually 2 digits in input (e.g. 24)
+              let year = parseInt(dateParts[2]);
+              formattedDate = `${year}/${parseInt(dateParts[0])}/${parseInt(dateParts[1])}`;
+          } else {
+              // Format: YYYY/M/D
+              let year = parseInt(dateParts[2]);
+              if (year < 100) year += 2000;
+              formattedDate = `${year}/${parseInt(dateParts[0])}/${parseInt(dateParts[1])}`;
+          }
+      }
+      postDate.textContent = formattedDate;
+      postDate.style.fontFamily = '"AR One Sans", sans-serif';
+      
+      titleRow.appendChild(postTitle);
+      titleRow.appendChild(postDate);
+      postItem.appendChild(titleRow);
+      
+      const statsRow = document.createElement('div');
+      statsRow.className = 'post-stats';
+      statsRow.style.fontFamily = '"AR One Sans", sans-serif'; 
+      
+      const createStat = (label, value) => {
+        if (value === '-' || !value) return null;
+        const item = document.createElement('div');
+        item.className = 'stat-item';
+        // Check if metric is View or Share for hover effect
+        if (label === 'View' || label === 'Share') {
+           item.classList.add('stat-hover-reveal');
+        }
+        item.innerHTML = `<span class="stat-label">${label}</span><span>${value}</span>`;
+        return item;
+      };
+      
+      // Default visible: Likes, Fav, Comm
+      // Hover visible (replace): View, Share
+      
+      // We will create two groups: default and hover
+      const defaultGroup = document.createElement('div');
+      defaultGroup.className = 'stats-group default-group';
+      
+      const hoverGroup = document.createElement('div');
+      hoverGroup.className = 'stats-group hover-group';
+      
+      // Helper to add to group
+      const addToGroup = (group, label, value) => {
+         const s = createStat(label, value);
+         if (s) group.appendChild(s);
+         return !!s;
+      };
+
+      // 1. Likes
+      addToGroup(defaultGroup, 'Likes', post.likes);
+      // 2. Favs
+      addToGroup(defaultGroup, 'Fav', post.favs);
+      // 3. Comments
+      addToGroup(defaultGroup, 'Comm', post.comments);
+      
+      // 4. Views (Hover)
+      const hasViews = addToGroup(hoverGroup, 'View', post.views);
+      // 5. Shares (Hover)
+      const hasShares = addToGroup(hoverGroup, 'Share', post.shares);
+      
+      // Only append if there are items
+      statsRow.appendChild(defaultGroup);
+      
+      // If we have hover items, append them too
+      if (hasViews || hasShares) {
+          statsRow.classList.add('has-hover-stats');
+          statsRow.appendChild(hoverGroup);
+      }
+      
+      postItem.appendChild(statsRow);
+      return postItem;
+    }
+
+    // Removing old updateFoldedDirections and toggleFolderPage as they are replaced by update3DLayout and handlePageClick
+    // ...
+
+
+    function hideAllGalleries() {
+      if (graphicDesignGallery) {
+        graphicDesignGallery.classList.remove('show');
+        graphicDesignGallery.style.display = 'none';
+      }
+      if (visualDisplayGallery) {
+        visualDisplayGallery.classList.remove('show');
+        visualDisplayGallery.style.display = 'none';
+      }
+      if (socialMediaGallery) {
+        socialMediaGallery.classList.remove('show');
+        socialMediaGallery.style.display = 'none';
+      }
+    }
+
+    function showGalleryForWave(waveId, opacity = null) {
+      // 1. 隐藏 *除了* waveId 对应的 gallery 之外的所有 gallery
+      if (waveId !== 0 && graphicDesignGallery) {
+         graphicDesignGallery.classList.remove('show');
+         graphicDesignGallery.style.display = 'none';
+      }
+      if (waveId !== 1 && visualDisplayGallery) {
+         visualDisplayGallery.classList.remove('show');
+         visualDisplayGallery.style.display = 'none';
+      }
+      if (waveId !== 2 && socialMediaGallery) {
+         socialMediaGallery.classList.remove('show');
+         socialMediaGallery.style.display = 'none';
+      }
+      
+      // 2. 显示目标 gallery
+      if (waveId === 0) {
+        // Graphic Design
+        if (graphicDesignGallery) {
+          // 只有当它是隐藏状态时，才执行显示初始化逻辑
+          if (graphicDesignGallery.style.display === 'none') {
+              graphicDesignGallery.style.display = 'flex';
+              graphicDesignGallery.style.opacity = 1;
+              graphicDesignGallery.classList.add('show');
+              
+              // 在显示后检查长图
+              setTimeout(() => {
+                const items = graphicDesignGallery.querySelectorAll('.gallery-item.graphic-design');
+                items.forEach(item => {
+                  const img = item.querySelector('img');
+                  const wrapper = item.querySelector('.image-wrapper');
+                  if (img && wrapper) {
+                     if (img.offsetHeight > wrapper.offsetHeight + 1) {
+                       item.classList.add('long-image');
+                     } else {
+                       item.classList.remove('long-image');
+                     }
+                  }
+                });
+              }, 100);
+          } else {
+              // 如果已经是显示的，确保 opacity 正确（虽然通常是1）
+              graphicDesignGallery.style.opacity = 1;
+          }
+        }
+      } else if (waveId === 1) {
+        // Visual Display
+        if (visualDisplayGallery) {
+          // 只有当它是隐藏状态时，才执行动画
+          if (visualDisplayGallery.style.display === 'none' || !visualDisplayGallery.classList.contains('show')) {
+             visualDisplayGallery.style.display = 'block';
+             visualDisplayGallery.style.opacity = 1;
+             visualDisplayGallery.classList.add('show');
+             runVisualDisplayAnimation();
+          }
+          // 如果已经是显示的，什么都不做，保持静止
+        }
+      } else if (waveId === 2) {
+        // Social Media Content
+        if (socialMediaGallery) {
+          if (socialMediaGallery.style.display === 'none') {
+             socialMediaGallery.style.display = 'flex';
+             // 重新计算位置，防止resize后位置不准
+             initSocialMediaGallery(); 
+             
+             // 强制重绘
+             void socialMediaGallery.offsetWidth;
+             
+             socialMediaGallery.style.opacity = 1;
+             socialMediaGallery.classList.add('show');
+          }
+        }
+      }
+    }
+
+    // 点击交互处理函数
+    function handleImageClick(e, item, imgPath, type) {
+      e.stopPropagation(); // 防止冒泡
+      if (item.classList.contains('is-bouncing')) return;
+      item.classList.add('is-bouncing');
+
+      if (type === 'graphic') {
+         // Graphic Design: 使用 CSS 动画
+         // 这里的动画会覆盖掉 entrance animation 的 transform，但由于 keyframes 中包含了 translateY(0)，所以结束时会回到原位
+         item.style.animation = 'bounceGraphic 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)';
+         
+         setTimeout(() => {
+           item.style.animation = ''; // 移除动画，回退到 CSS 规则
+           item.classList.remove('is-bouncing');
+           openModal(imgPath);
+         }, 500);
+      } else if (type === 'visual') {
+         // Visual Display: 手动操作 transform 以保留 rotation
+         const rot = parseFloat(item.dataset.finalRot) || 0;
+         const originalTransition = item.style.transition;
+         
+         // 1. 向上弹出 (Pop Up)
+         // 使用 cubic-bezier 模拟弹跳起势
+         item.style.transition = 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)';
+         // 修改：先旋转再平移，使平移沿着旋转后的局部坐标系Y轴进行，即“按图片倾斜角度向上”
+         item.style.transform = `rotate(${rot}deg) translateY(-40px)`;
+         item.style.zIndex = 100; // 临时置顶
+         
+         setTimeout(() => {
+           // 2. 落回原位 (Fall Back)
+           item.style.transition = 'transform 0.25s ease-in';
+           // 保持 transform 顺序一致以确保平滑过渡
+           item.style.transform = `rotate(${rot}deg) translateY(0)`;
+           
+           setTimeout(() => {
+             // 3. 动画结束，清理状态
+             // 恢复仅有 rotate 的状态 (虽然 translateY(0) 也是一样的，但保持代码整洁)
+             item.style.transform = `rotate(${rot}deg)`; 
+             item.style.transition = originalTransition;
+             item.style.zIndex = ''; // 恢复 z-index (hover 会处理)
+             item.classList.remove('is-bouncing');
+             openModal(imgPath);
+           }, 250);
+         }, 250);
+      }
+    }
+
+    // 弹出窗口功能 - 支持滚轮缩放和拖拽
+    let currentScale = 1;
+    let isDragging = false;
+    let startX, startY, initialLeft, initialTop;
+    let translateX = 0, translateY = 0;
+    
+    // 移动端双指缩放相关变量
+    let initialPinchDistance = 0;
+    let initialScale = 1;
+
+    function openModal(imgPath) {
+      if (!imageModal) return;
+      const modalImage = document.getElementById('modalImage');
+      if (modalImage) {
+        modalImage.src = imgPath;
+        imageModal.classList.add('show');
+        
+        // 重置状态
+        resetImageState(modalImage);
+        
+        // 绑定事件
+        setupModalEvents(modalImage);
+      }
+    }
+    
+    function resetImageState(img) {
+      currentScale = 1;
+      translateX = 0;
+      translateY = 0;
+      updateImageTransform(img);
+      img.style.cursor = 'grab';
+    }
+    
+    function updateImageTransform(img) {
+      img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
+    }
+    
+    function setupModalEvents(img) {
+      // 1. 鼠标滚轮缩放
+      img.onwheel = (e) => {
+        e.preventDefault();
+        const delta = e.deltaY * -0.001; // 滚轮灵敏度
+        const newScale = Math.min(Math.max(0.5, currentScale + delta), 5); // 限制缩放范围 0.5x - 5x
+        currentScale = newScale;
+        updateImageTransform(img);
+      };
+      
+      // 2. 鼠标拖拽
+      img.onmousedown = (e) => {
+        e.preventDefault(); // 防止默认拖拽图片行为
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        img.style.cursor = 'grabbing';
+      };
+      
+      window.onmousemove = (e) => {
+        if (isDragging) {
+          const dx = e.clientX - startX;
+          const dy = e.clientY - startY;
+          translateX += dx;
+          translateY += dy;
+          startX = e.clientX;
+          startY = e.clientY;
+          updateImageTransform(img);
+        }
+      };
+      
+      window.onmouseup = () => {
+        isDragging = false;
+        img.style.cursor = 'grab';
+      };
+      
+      // 3. 移动端双指缩放 & 单指拖拽
+      img.ontouchstart = (e) => {
+        if (e.touches.length === 2) {
+          // 双指缩放开始
+          e.preventDefault(); // 防止页面滚动
+          initialPinchDistance = getDistance(e.touches[0], e.touches[1]);
+          initialScale = currentScale;
+        } else if (e.touches.length === 1) {
+          // 单指拖拽开始
+          isDragging = true;
+          startX = e.touches[0].clientX;
+          startY = e.touches[0].clientY;
+        }
+      };
+      
+      img.ontouchmove = (e) => {
+        e.preventDefault(); // 防止页面滚动
+        if (e.touches.length === 2) {
+          // 双指缩放中
+          const currentDistance = getDistance(e.touches[0], e.touches[1]);
+          if (initialPinchDistance > 0) {
+            const scaleDiff = currentDistance / initialPinchDistance;
+            currentScale = Math.min(Math.max(0.5, initialScale * scaleDiff), 5);
+            updateImageTransform(img);
+          }
+        } else if (e.touches.length === 1 && isDragging) {
+          // 单指拖拽中
+          const dx = e.touches[0].clientX - startX;
+          const dy = e.touches[0].clientY - startY;
+          translateX += dx;
+          translateY += dy;
+          startX = e.touches[0].clientX;
+          startY = e.touches[0].clientY;
+          updateImageTransform(img);
+        }
+      };
+      
+      img.ontouchend = (e) => {
+        if (e.touches.length < 2) {
+          initialPinchDistance = 0;
+        }
+        if (e.touches.length === 0) {
+          isDragging = false;
+        }
+      };
+      
+      // 点击 modalContent (背景区域) 关闭
+      const modalContent = document.querySelector('.modal-content');
+      if (modalContent) {
+         modalContent.onclick = (e) => {
+           // 如果点击的是 modal-content 本身（即图片外围），而不是图片
+           if (e.target === modalContent) {
+             closeModal();
+           }
+         };
+      }
+      
+      // 移除旧的点击事件，防止冲突
+      img.onclick = (e) => {
+        e.stopPropagation();
+      };
+    }
+    
+    function getDistance(touch1, touch2) {
+      const dx = touch1.clientX - touch2.clientX;
+      const dy = touch1.clientY - touch2.clientY;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+    
+    function closeModal() {
+      if (imageModal) {
+        imageModal.classList.remove('show');
+        // 解除全局事件绑定，防止内存泄漏或干扰
+        window.onmousemove = null;
+        window.onmouseup = null;
+      }
+    }
+
+    // 点击背景关闭弹出窗口
+    document.addEventListener('DOMContentLoaded', () => {
+      const modalBackdrop = document.querySelector('.modal-backdrop');
+      if (modalBackdrop) {
+        modalBackdrop.addEventListener('click', closeModal);
+      }
+      
+      // ESC键关闭
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeModal();
+        }
+        
+        // Social Media Gallery Keyboard Navigation
+        if (socialMediaGallery && socialMediaGallery.classList.contains('show')) {
+          if (e.key === 'ArrowLeft') {
+            navigateGallery(-1); // Left Arrow -> Previous
+          } else if (e.key === 'ArrowRight') {
+            navigateGallery(1);  // Right Arrow -> Next
+          }
+        }
+      });
+    });
+
+    // 在draw循环中更新图片位置
+    function draw() {
+      clear(); // 使用 clear() 实现透明背景
+      drawUI();
+      updateTargetPositions();
+
+      for (let w of waves) {
+        w.update();
+        w.display();
+      }
+    }
+  </script>
+</body>
+</html>

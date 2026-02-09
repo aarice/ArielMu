@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Experience</title>
+  <!-- 引入 Special Elite 字体 (英文字体) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet">
+  <!-- 引入 AR One Sans -->
+  <link href="https://fonts.googleapis.com/css2?family=AR+One+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <!-- 引入 Source Code Pro -->
+  <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet">
+  <!-- 引入 Noto Sans HK (思源黑体香港) -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@300;400;700&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ================= 基础样式 ================= */
+    :root {
+      --bg-color: #F2F2F1;
+      --text-color: #000000;
+      --muted-color: #666666;
+      --border-color: #DDDDDD;
+      /* 优先使用 Special Elite 显示英文/数字，中文回退到 思源黑体香港 (Noto Sans HK) */
+      --font-main: "Special Elite", "Noto Sans HK", "Source Han Sans SC", "Source Han Sans", sans-serif;
+      --font-code: "AR One Sans", sans-serif; /* 定义新字体变量 */
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: var(--font-main);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a {
+      color: var(--text-color);
+      text-decoration: none;
+      position: relative;
+    }
+    
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* ================= 布局容器 ================= */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px 40px; /* Top 0 to control header spacing manually */
+      position: relative;
+    }
+
+    /* ================= 顶部导航 ================= */
+    header {
+      display: flex;
+      justify-content: flex-end; /* Nav aligned to right */
+      align-items: center;
+      padding-top: 10px; /* 与 about.html 一致 */
+      margin-bottom: 20px; /* 与 about.html 一致，从 60px 改为 20px */
+    }
+
+    /* Page Title (was Logo) */
+    .page-title {
+      font-size: 48px;
+      font-weight: bold;
+      letter-spacing: -1px;
+      margin-bottom: 0px; /* 与 about.html 一致，从 20px 改为 0px */
+      font-family: var(--font-main);
+      position: relative;
+      z-index: 10;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 30px;
+      font-size: 14px;
+      color: #999;
+      margin: 0;
+      font-family: var(--font-code); /* 使用 Source Code Pro */
+    }
+    
+    .nav-links a { 
+      color: #999; 
+      transition: all 0.2s ease;
+      display: inline-block;
+      text-decoration: none;
+      transform-origin: bottom center; /* 旋转轴在底部 */
+    }
+    .nav-links a:hover { 
+      color: #333; 
+    }
+    .nav-links a:active {
+      color: #ccc; /* 颜色变浅 */
+      text-shadow: none;
+      transform: perspective(500px) rotateX(60deg) skewX(-15deg); /* 向斜后方倾倒 */
+    }
+
+    /* ================= Hero 区域 & 地图背景 ================= */
+    .hero-section {
+      position: relative;
+      margin-top: 40px; /* 向下平移 20px */
+      margin-bottom: 40px;
+      min-height: 400px;
+    }
+
+    .map-container {
+      position: relative;
+      width: 100%;
+      height: 500px;
+      margin-top: 0;
+      z-index: 1;
+      overflow: hidden;
+      display: flex;
+      justify-content: center; /* 居中地图 wrapper */
+      align-items: center;
+    }
+
+    /* 新增 wrapper，尺寸将由 JS 动态设置为与图片渲染尺寸一致 */
+    #map-wrapper {
+      position: relative;
+      display: inline-block; /* 适应内容尺寸 */
+      /* 初始状态可能需要一些样式，但主要靠 JS */
+      width: auto;
+      height: 100%;
+    }
+
+    .world-map {
+      width: auto;      /* 允许自然宽度 */
+      height: 100%;     /* 充满高度 */
+      max-width: 100%;  /* 不超宽 */
+      object-fit: contain;
+      opacity: 0.6;
+      display: block;
+    }
+
+    .world-map:not([src]), 
+    img[src="Earth.png"][style*="display: none"] ~ #map-placeholder,
+    img[src="Earth.png"][style*="display:none"] ~ #map-placeholder {
+       display: block !important;
+    }
+    
+    #map-placeholder {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: -1;
+      opacity: 0.5;
+      background:
+        radial-gradient(circle at 83% 58%, rgba(0,0,0,.1) 0 3px, transparent 3px) no-repeat,
+        radial-gradient(circle at 78% 46%, rgba(0,0,0,.1) 0 3px, transparent 3px) no-repeat,
+        radial-gradient(circle at 68% 52%, rgba(0,0,0,.1) 0 3px, transparent 3px) no-repeat,
+        radial-gradient(circle at 71% 40%, rgba(0,0,0,.1) 0 3px, transparent 3px) no-repeat,
+        radial-gradient(circle at 75% 64%, rgba(0,0,0,.1) 0 3px, transparent 3px) no-repeat,
+        radial-gradient(circle at 56% 36%, rgba(0,0,0,.1) 0 3px, transparent 3px) no-repeat,
+        radial-gradient(circle at 53% 33%, rgba(0,0,0,.1) 0 3px, transparent 3px) no-repeat,
+        radial-gradient(circle at 49% 31%, rgba(0,0,0,.1) 0 3px, transparent 3px) no-repeat,
+        radial-gradient(circle at 22% 40%, rgba(0,0,0,.1) 0 3px, transparent 3px) no-repeat,
+        radial-gradient(circle at 18% 52%, rgba(0,0,0,.1) 0 3px, transparent 3px) no-repeat,
+        radial-gradient(circle at 80% 50%, rgba(0,0,0,.05) 0 50px, transparent 60px) no-repeat,
+        radial-gradient(circle at 55% 40%, rgba(0,0,0,.05) 0 40px, transparent 50px) no-repeat,
+        radial-gradient(circle at 25% 45%, rgba(0,0,0,.05) 0 50px, transparent 60px) no-repeat;
+      background-size: 100% 100%;
+    }
+    
+    .collaboration-text {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      font-size: 80px;
+      color: rgba(0, 0, 0, 0.03);
+      text-transform: capitalize;
+      pointer-events: none;
+      z-index: 0;
+      text-align: right;
+    }
+
+    .marker {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #fff;            /* 白色填充 */
+      border: 3px solid #9aa0a6;   /* 灰色边缘 */
+      transform: translate(-50%, -50%);
+      opacity: 0.9;
+      animation: blink 2.4s ease-in-out infinite;
+      cursor: pointer;
+      z-index: 2;
+    }
+    /* 灰色边缘轻微放大缩小（1.5x） */
+    .marker::after {
+      content: '';
+      position: absolute;
+      left: 50%; top: 50%;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      border: 2px solid #9aa0a6;
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 0.5;
+      animation: pulse 2.4s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    /* 标签 */
+    .marker .label {
+      position: absolute;
+      top: -20px; left: 50%;
+      transform: translateX(-50%);
+      color: #666; /* 灰色字体 */
+      font-family: var(--font-main); /* 保持一致字体 */
+      font-size: 10px;
+      white-space: nowrap;
+      display: none;
+      pointer-events: none;
+      background: none; /* 无背景色 */
+      padding: 0;
+      border-radius: 0;
+      text-shadow: 0 1px 2px rgba(255,255,255,0.8); /* 增加白色描边以防背景干扰 */
+    }
+
+    /* 标签位置修正：下方显示 */
+    .marker .label.label-bottom {
+      top: auto; 
+      bottom: -20px;
+    }
+
+    /* 初始动画 */
+    @keyframes blink {
+      0%, 100% { opacity: 0.9; }
+      50%      { opacity: 0.4; }
+    }
+    @keyframes pulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); }
+      50%      { transform: translate(-50%, -50%) scale(1.5); }
+    }
+
+    /* 悬停任一点：所有标记点静止，但仅有hover的那个点显示标签 */
+    .map-container.paused .marker {
+      animation-play-state: paused;
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1); /* 保持在放大 1.1 倍的状态 */
+    }
+    .map-container.paused .marker::after {
+      animation-play-state: paused;
+      opacity: 0.5;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    
+    /* 仅当鼠标真正悬停在具体的 .marker 上时，才显示该点的 label */
+    .marker:hover .label {
+      display: inline-block;
+    }
+
+    /* 地点标记位置 - 默认（桌面端） */
+    .m-beijing { left: 79%; top: 39%; }
+    .m-shanghai { left: 80%; top: 47%; }
+    .m-suzhou { left: 79%; top: 46%; }
+    .m-shenzhen { left: 77%; top: 51%; }
+    .m-zhaotong { left: 75%; top: 48%; }
+    .m-frankfurt { left: 49%; top: 33%; }
+    .m-paris { left: 48%; top: 35%; }
+    .m-london { left: 47%; top: 32%; }
+    .m-oakland { left: 13%; top: 42%; }
+    .m-iowa { left: 22%; top: 39%; }
+
+    /* ================= 工作经历列表 ================= */
+    .experience-list {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      column-gap: 40px;
+      row-gap: 60px;
+      margin-bottom: 80px;
+    }
+
+    /* 左栏 */
+    .col-left {
+      font-size: 16px;
+      line-height: 1.5;
+      display: flex;
+      flex-direction: column;
+      gap: 12px; /* 统一的行间距 */
+      align-items: flex-start; /* 左对齐 */
+    }
+    .col-left .years {
+      font-size: 20px;
+      display: block;
+      line-height: 1.3; /* 紧凑一点的年份行高 */
+    }
+    .col-left .company {
+      font-size: 12px;
+      color: var(--muted-color);
+      display: block;
+      line-height: 1.4;
+    }
+    .tag {
+      display: inline-flex; /* 使用 flex 布局 */
+      align-items: center;  /* 垂直居中 */
+      justify-content: center; /* 水平居中 */
+      border: 1px solid #ccc;
+      border-radius: 50px; /* 大圆角形成椭圆 */
+      padding: 0px 6px; /* 增加内边距 */
+      /* 控制文字与顶部距离：通过 padding-top 微调，或直接 margin-top */
+      padding-top: 2px; /* 示例：向下微调文字位置 */
+      font-size: 10px;
+      color: #888;
+      line-height: 1; /* 重置行高，避免干扰垂直居中 */
+      height: 26px; /* 固定高度，确保视觉平衡 */
+      box-sizing: border-box;
+    }
+
+    /* 右侧内容容器 */
+    .col-content {
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+    }
+
+    .job-item {
+      display: grid;
+      grid-template-columns: 1fr 200px;
+      gap: 40px;
+      align-items: flex-start;
+      transition: opacity 0.3s ease; /* 添加过渡效果 */
+    }
+
+    /* ================= Hover 效果 (关键修改) ================= */
+    /* 当鼠标悬停在整个列表区域时，所有 job-item 透明度降低 */
+    .experience-list:hover .job-item {
+      opacity: 0.5;
+    }
+
+    /* 当鼠标悬停在某个具体的 job-item 时，该项保持完全不透明 */
+    .job-item:hover {
+      opacity: 1 !important;
+    }
+
+    .job-desc {
+      font-size: 14px;
+      line-height: 1.8;
+      color: #333;
+    }
+    .job-desc p {
+      margin: 0;
+    }
+
+    .job-role {
+      text-align: right;
+    }
+    .role-zh {
+      font-size: 15px;
+      font-weight: bold;
+      display: block;
+    }
+    .role-en {
+      font-size: 12px;
+      color: var(--muted-color);
+      display: block;
+    }
+
+    /* ================= 底部活动列表 ================= */
+    .events-grid {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 120px;
+      gap: 20px;
+      align-items: baseline;
+    }
+    
+    .event-item {
+      display: contents;
+      font-weight: 300;
+    }
+
+    .event-location strong {
+      display: block;
+      font-size: 14px;
+      color: #000;
+    }
+    .event-location span {
+      font-size: 12px;
+      color: #666;
+    }
+
+    .event-position .role-zh {
+      font-size: 14px;
+      font-weight: 400; /* 减轻字重 */
+    }
+    .event-position .role-en {
+      font-size: 12px;
+      font-weight: 400; /* 减轻字重 */
+    }
+
+    .event-time {
+      text-align: right;
+      font-size: 12px;
+      color: #999;
+    }
+
+    /* ================= 底部 Footer ================= */
+    /* 图片全屏查看模态框 */
+    .img-modal {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.9);
+      align-items: center;
+      justify-content: center;
+      cursor: zoom-out;
+    }
+    .img-modal.active {
+      display: flex;
+    }
+    .img-modal-content {
+      max-width: 90%;
+      max-height: 90%;
+      object-fit: contain;
+    }
+    
+    .sidebar-img {
+      cursor: zoom-in;
+      display: block;
+      /* 宽度将由 JS 动态设置 */
+      filter: grayscale(100%);
+      transition: filter 0.3s ease;
+    }
+    
+    .sidebar-img:hover {
+        filter: grayscale(0%);
+    }
+
+    footer{
+      border-top:1px solid rgba(0,0,0,0.08);
+      margin-top:24px;
+    }
+    .footer-inner{
+      max-width:1200px;
+      margin:0 auto;
+      padding:18px 24px 28px;
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:12px;
+      font-size:13px; /* 12-14px */
+      color: #666666; /* 统一颜色 */
+      font-family: "AR One Sans", sans-serif; /* 统一字体 */
+    }
+    .footer-item b{
+      display:block;
+      font-weight:500;
+      margin-bottom:6px;
+      color: #666666; /* 统一颜色 */
+    }
+    .footer-item span {
+      opacity: 1; /* 统一透明度 */
+    }
+
+    /* ================= 模糊锁定 & 密码弹窗 ================= */
+    .blur-protected {
+      transition: filter 0.5s ease;
+    }
+    
+    .blur-protected.is-blurred {
+      filter: blur(12px); /* 模糊程度 */
+      user-select: none;
+      cursor: pointer; /* 提示可点击 */
+      pointer-events: auto; /* 确保能接收点击 */
+    }
+
+    /* 锁定状态下禁用 Hover 效果 */
+    .experience-list.locked:hover .job-item {
+      opacity: 1 !important; /* 强制不透明 */
+    }
+    .experience-list.locked .job-item:hover {
+      opacity: 1 !important;
+    }
+
+    /* 密码弹窗 */
+    #password-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(255, 255, 255, 0.5); /* 半透明背景 */
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    #password-modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      text-align: center;
+      border: 1px solid #eee;
+    }
+
+    .modal-content h3 {
+      margin: 0 0 20px 0;
+      font-size: 16px;
+      font-weight: normal;
+      color: #333;
+    }
+
+    .pin-input {
+      font-family: var(--font-code);
+      font-size: 24px;
+      letter-spacing: 10px;
+      text-align: center;
+      width: 160px;
+      border: none;
+      border-bottom: 2px solid #ccc;
+      outline: none;
+      background: transparent;
+      color: #000;
+      padding: 5px;
+    }
+    
+    .pin-input:focus {
+      border-bottom-color: #000;
+    }
+
+    /* ================= 响应式 ================= */
+    @media (max-width: 900px) {
+      .experience-list {
+        grid-template-columns: 150px 1fr;
+      }
+      .job-item {
+        grid-template-columns: 1fr 150px;
+        gap: 20px;
+      }
+    }
+    @media (max-width: 768px) {
+      .page-title {
+        font-size: 36px;
+      }
+
+      .hero-section {
+        margin-top: 10px; /* 上移 */
+        min-height: auto;
+      }
+      .map-container {
+        height: 300px; /* 缩小地图高度 */
+      }
+      .collaboration-text {
+        font-size: 40px; /* 缩小文字 */
+        bottom: 10px;
+        right: 10px;
+      }
+      
+      .experience-list {
+        display: flex;
+        flex-direction: column;
+        gap: 40px;
+      }
+      
+      /* 图片移至右侧，与2026顶部对齐 */
+      .col-left {
+        position: relative;
+        padding-right: 100px; /* 为图片留出空间 */
+        min-height: 80px; /* 确保高度足够 */
+      }
+      
+      .sidebar-img {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 80px !important; /* 强制宽度，覆盖 JS 设置 */
+        height: auto;
+        margin-top: 0;
+      }
+
+      .job-item {
+        display: flex;
+        flex-direction: column-reverse;
+        gap: 10px;
+      }
+      .job-role {
+        text-align: left;
+      }
+      
+      .events-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+      .event-item {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        padding-bottom: 15px;
+        border-bottom: 1px dashed #eee;
+      }
+      .event-time {
+        text-align: left;
+      }
+      
+      .footer-inner{
+        grid-template-columns:1fr 1fr;
+        row-gap:16px;
+        font-size:12px;
+      }
+
+      /* Mobile adjustments for Job Role */
+      .job-role {
+        align-self: flex-end;
+        text-align: right;
+      }
+
+      /* Mobile adjustments for Event Position and Time */
+      .event-position,
+      .event-time {
+        align-self: flex-end;
+        text-align: right;
+      }
+
+      /* Scroll Lyrics Effect - 使用 !important 确保覆盖默认样式 */
+      .job-item {
+        opacity: 0.2 !important; 
+        transition: opacity 0.5s ease;
+      }
+      
+      .job-item.scroll-active, 
+      .event-item.scroll-active {
+        opacity: 1 !important;
+      }
+
+      /* 
+       * =========================================
+       * 移动端地图标记位置微调区域
+       * 请在此处修改每个城市的 left (水平位置) 和 top (垂直位置)
+       * 数值范围 0% - 100%
+       * =========================================
+       */
+      .m-beijing { left: 79%; top: 40%; }
+      .m-shanghai { left: 80%; top: 49%; }
+      .m-suzhou { left: 79%; top: 48%; }
+      .m-shenzhen { left: 77%; top: 51%; }
+      .m-zhaotong { left: 75%; top: 49%; }
+      .m-frankfurt { left: 48%; top: 37%; }
+      .m-paris { left: 47%; top: 38%; }
+      .m-london { left: 46%; top: 34%; }
+      .m-oakland { left: 14%; top: 43%; }
+      .m-iowa { left: 22%; top: 42%; }
+
+      /* Mobile Marker Size Reduction */
+      .marker {
+        width: 6px;
+        height: 6px;
+        border-width: 2px;
+      }
+      .marker::after {
+        width: 4px;
+        height: 4px;
+        border-width: 1px;
+      }
+      .marker.active .label {
+        display: inline-block !important;
+      }
+      .marker.active {
+        opacity: 0.9 !important;
+        animation: none !important; /* 保持常亮 */
+      }
+      .marker.active::after {
+        opacity: 0.5 !important;
+        animation: none !important;
+        transform: translate(-50%, -50%) scale(1.5); /* 保持扩大状态 */
+      }
+    }
+
+    /* 
+     * =========================================
+     * 平板横屏/小尺寸桌面调整 (768px - 1024px)
+     * =========================================
+     */
+    @media (min-width: 769px) and (max-width: 1024px) {
+       /* 如果需要针对平板横屏微调位置，可以在这里覆盖 */
+       .m-beijing { left: 75%; top: 39%; }
+       .m-shanghai { left: 76%; top: 47%; }
+       /* ... 其他点保持默认或按需微调 ... */
+    }
+
+    @media (max-width: 480px) {
+      .nav-links {
+        gap: 20px;
+        font-size: 12px;
+      }
+      
+      .page-title {
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <nav class="nav-links">
+        <a href="./index.html">Sketchbook</a>
+        <a href="./works.html">Works</a>
+        <a href="./experience.html">Experience</a>
+        <a href="./about.html">About</a>
+      </nav>
+    </header>
+    
+    <div class="page-title">Experience.</div>
+
+    <section class="hero-section">
+      <div class="map-container">
+        <div id="map-wrapper">
+          <img src="Earth.png" alt="World Map" class="world-map" id="world-map-img" onerror="this.style.display='none'; document.getElementById('map-placeholder').style.display='block'">
+          
+          <!-- 地点标记：如果您觉得位置不准，请提供正确的【城市名称】以及它大概在地图的【相对位置】（例如：中国上海，位置偏左一点） -->
+          <div class="marker m-beijing" data-city="Beijing"><span class="label">Beijing</span></div>
+          <div class="marker m-shanghai" data-city="Shanghai"><span class="label">Shanghai</span></div>
+          <div class="marker m-suzhou" data-city="Suzhou"><span class="label">Suzhou</span></div>
+          <div class="marker m-shenzhen" data-city="Shenzhen"><span class="label label-bottom">Shenzhen</span></div>
+          <div class="marker m-zhaotong" data-city="Zhaotong"><span class="label">Zhaotong</span></div>
+          <div class="marker m-frankfurt" data-city="Frankfurt"><span class="label">Frankfurt</span></div>
+          <div class="marker m-paris" data-city="Paris"><span class="label label-bottom">Paris</span></div>
+          <div class="marker m-london" data-city="London"><span class="label">London</span></div>
+          <div class="marker m-oakland" data-city="Oakland"><span class="label">Oakland</span></div>
+          <div class="marker m-iowa" data-city="Iowa"><span class="label">Iowa</span></div>
+        </div>
+        <div id="map-placeholder" style="display:none;"></div>
+        <div class="collaboration-text">Collaboration</div>
+      </div>
+    </section>
+
+    <section class="experience-list locked">
+      
+      <!-- Block 1 -->
+      <div class="exp-row" style="display:contents">
+        <div class="col-left">
+          <span class="years">2025/10<br>2024/03</span>
+          <span class="tag">FULL TIME</span>
+          <span class="company">灵魂当家概念店<br>SOULPAPER<br>(成都·深圳)</span>
+        </div>
+        <div class="col-content blur-protected is-blurred">
+          <!-- Item 1 -->
+          <div class="job-item">
+            <div class="job-desc">
+              <p>定期整理和分析销售数据，把控成本，通过调整营销策略如定期陈列调整、时段促销、调整定价策略、社群运营、平台活动、会员管理等，平均每月超额完成业绩目标的120%。</p>
+            </div>
+            <div class="job-role">
+              <span class="role-zh">门店运营</span>
+              <span class="role-en">Retail Operations</span>
+            </div>
+          </div>
+          <!-- Item 2 -->
+          <div class="job-item">
+            <div class="job-desc">
+              <p>主导与日本潮玩品牌多丽梦（Dreams，旗下品牌Sonny Angel）、巴黎时尚品牌Academy Of Love、巴黎文具品牌Papier Tigre、插画师sono11合作联名快闪，策划活动展陈方案、把控项目进度，对接品牌供应商、物料筹备、人员安排及监督、线上宣发至落地；主动邀约知名欧美文具品牌MOGLEA(美国)、TheCompletist(英国)、People I've Loved(美国)、nuuna(德国) 进行合作并成功引进国内，与品牌方进行价格、付款方式、交货期等条款的谈判，促成品牌在大陆的首次合作与亮相。</p>
+            </div>
+            <div class="job-role">
+              <span class="role-zh">商务拓展</span>
+              <span class="role-en">Business Development</span>
+            </div>
+          </div>
+          <!-- Item 3 -->
+          <div class="job-item">
+            <div class="job-desc">
+              <p>作为欧美文具品牌一级代理，开发线下书店客源，与进行价格及账期谈判，提供定制化方案，货品交付、回款，定时跟进销售情况，提供销售支持，推动闭环，促成与方所(上海)、诚品书店(苏州)、百新书局(上海)、提案者书店(深圳)、未来图书城(昭通)等零售门店的长期批发合作。</p>
+            </div>
+            <div class="job-role">
+              <span class="role-zh">大客户销售</span>
+              <span class="role-en">Key Account Management</span>
+            </div>
+          </div>
+          <!-- Item 4 -->
+          <div class="job-item">
+            <div class="job-desc">
+              <p>通过Shopify搭建面向欧美市场的首饰品牌独立站Zhulry.com，利用ChatGPT协助完善网站内容。通过SEMRush和GA收集分析关键词，埋词提升SEO排名。优化广告落地页、内部链接、提升使用流畅度。分析行业竞品，提供营销方案，协助网页设计及排版，把控视觉一致性。</p>
+            </div>
+            <div class="job-role">
+              <span class="role-zh">独立站运营</span>
+              <span class="role-en">DTC Operations</span>
+            </div>
+          </div>
+          <!-- Item 5 -->
+          <div class="job-item">
+            <div class="job-desc">
+              <p>定位较高消费人群，在小红书、视频号、大众点评三个主要渠道通过内容营销引流。独立策划内容、拍摄、后期剪辑，运营账号矩阵（@灵魂当家成都店 @茂子SoulMaster @纸老虎SoulPaper @SoulPaper @MOGLEA @peopleiveloved），共新增3w+粉丝，小红书爆款笔记4篇（赞藏7000+）热门笔记13篇（赞藏1000+）。</p>
+            </div>
+            <div class="job-role">
+              <span class="role-zh">社媒运营</span>
+              <span class="role-en">Social Media Marketing</span>
+            </div>
+          </div>
+          <!-- Item 6 -->
+          <div class="job-item">
+            <div class="job-desc">
+              <p>调研行业动向，制定直播策略、活动机制、内容及话术，把控直播间的视觉呈现（场景搭建、灯光、产品陈列），协调主播调整策略达成业绩目标，一个月内GMV增长100%，受小红书官方流量扶持，商家排名稳定在类目TOP10。</p>
+            </div>
+            <div class="job-role">
+              <span class="role-zh">直播运营</span>
+              <span class="role-en">Live Commerce Operations</span>
+            </div>
+          </div>
+          <!-- Item 7 -->
+          <div class="job-item">
+            <div class="job-desc">
+              <p>2500+SKU进销存管理，选品测品，参与产品定价，把控毛利率，根据市场反馈及效益合理进换货；通过销售数据分析预测销量，制定补货策略；向欧美品牌方下订单，安排物流运输，报关清关，安排货品验收，节约头程运输成本约20%。</p>
+            </div>
+            <div class="job-role">
+              <span class="role-zh">进销存管理</span>
+              <span class="role-en">Merchandise management</span>
+            </div>
+          </div>
+          <!-- Item 8 -->
+          <div class="job-item">
+            <div class="job-desc">
+              <p>结合生活方式品牌行业动态及工艺调研，开发服饰、香薰、餐具、首饰类产品，负责产品生命周期管理（供应商、产品定价、升级、销售等），提供销售工具支持（产品手册、FAQ、陈列道具等）。</p>
+            </div>
+            <div class="job-role">
+              <span class="role-zh">产品开发</span>
+              <span class="role-en">Product Development</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Block 2 -->
+      <div class="exp-row" style="display:contents">
+        <div class="col-left">
+          <span class="years">2023/10<br>2022/08</span>
+          <span class="tag">FULL TIME</span>
+          <span class="company">ART23<br>(广州)</span>
+        </div>
+        <div class="col-content blur-protected is-blurred">
+          <!-- Item 1 -->
+          <div class="job-item">
+            <div class="job-desc">
+              <p>官方小红书账号0-1搭建@Art23国际艺术教育，策划发布知识类笔记。6个月达成5000+新增粉丝，多篇笔记赞藏1000+，单篇笔记最高达成赞藏2400+。</p>
+            </div>
+            <div class="job-role">
+              <span class="role-zh">社媒运营</span>
+              <span class="role-en">Social media Marketing</span>
+            </div>
+          </div>
+          <!-- Item 2 -->
+          <div class="job-item">
+            <div class="job-desc">
+              <p>展览海报、周边物料排版设计，协助策划展览、布展、撤展，展品销售及维护，负责志愿者招募、管理及培训，展馆日常维护运营。</p>
+            </div>
+            <div class="job-role">
+              <span class="role-zh">展馆运营</span>
+              <span class="role-en">Gallery Operations</span>
+            </div>
+          </div>
+          <!-- Item 3 -->
+          <div class="job-item">
+            <div class="job-desc">
+              <p>通过小红书、公众号拓展客户资源，引流至私域促成成交；针对意向学生进行国际课程咨询，挖掘分析客户需求，与作品集老师共同制定个性化学习方案，维护客户关系，促成签单达成交易。新媒体渠道开发百位潜在客户，新增22位学生，直接收益约46w。</p>
+            </div>
+            <div class="job-role">
+              <span class="role-zh">课程销售</span>
+              <span class="role-en">Course sales</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+       <!-- Block 3: Events List -->
+       <div class="exp-row" style="display:contents">
+        <div class="col-left">
+          <span class="years">2026<br>2023</span>
+          <span class="tag">PART TIME</span>
+          <span class="company">(广州·成都·深圳)</span>
+          <img src="images/pic.png" class="sidebar-img" alt="Sidebar Image" onclick="openImageModal(this)">
+        </div>
+        <div class="col-content">
+          <div class="events-grid">
+             <!-- Event 1 -->
+             <div class="event-item">
+               <div class="event-location">
+                 <strong>Vivienne Westwood Cafe</strong>
+                 <span>深圳市罗湖区万象城1期</span>
+               </div>
+               <div class="event-position">
+                  <span class="role-zh">咖啡师</span>
+                  <span class="role-en">Barista</span>
+               </div>
+               <div class="event-time">
+                  2025/12 -
+               </div>
+             </div>
+
+             <!-- Event 2 -->
+             <div class="event-item">
+               <div class="event-location">
+                 <strong>BIGGER HOUSE 快闪店</strong>
+                 <span>深圳市南山区海上世界</span>
+               </div>
+               <div class="event-position">
+                  <span class="role-zh">门店销售</span>
+                  <span class="role-en">Sales</span>
+               </div>
+               <div class="event-time">
+                  2025/10 - 12
+               </div>
+             </div>
+
+             <!-- Event 3 -->
+             <div class="event-item">
+               <div class="event-location">
+                 <strong>Open M Art Fair (abC)</strong>
+                 <span>深圳市南山区G&G创意社区</span>
+               </div>
+               <div class="event-position">
+                  <span class="role-zh">展览执行</span>
+                  <span class="role-en">Execution</span>
+               </div>
+               <div class="event-time">
+                  2025/11
+               </div>
+             </div>
+
+             <!-- Event 4 -->
+             <div class="event-item">
+               <div class="event-location">
+                 <strong>Yes! Art Festival 野生青年艺术节</strong>
+                 <span>成都市青羊区木木美术馆</span>
+               </div>
+               <div class="event-position">
+                  <span class="role-zh">展览执行</span>
+                  <span class="role-en">Execution</span>
+               </div>
+               <div class="event-time">
+                  2024/03
+               </div>
+             </div>
+
+             <!-- Event 5 -->
+             <div class="event-item">
+               <div class="event-location">
+                 <strong>GAF 广州插画艺术节</strong>
+                 <span>广州市海珠区保利世界贸易中心</span>
+               </div>
+               <div class="event-position">
+                  <span class="role-zh">布展助理</span>
+                  <span class="role-en">Assistant</span>
+               </div>
+               <div class="event-time">
+                  2023/10 - 12
+               </div>
+             </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <!-- 底部 Footer -->
+  <footer>
+    <div class="footer-inner" style="font-family: var(--font-code);">
+      <div class="footer-item">
+        <b>Email</b>
+        <span>sy.mu@foxmail.com</span>
+      </div>
+      <div class="footer-item">
+        <b>Instagram</b>
+        <span>@enjolra.as</span>
+      </div>
+      <div class="footer-item">
+        <b>Rednote</b>
+        <span style="font-family: 'Noto Sans HK', sans-serif;">@冰泡饭</span>
+      </div>
+      <div class="footer-item">
+        <b>Rights</b>
+        <span>Sonnet 5 by William Shakespeare</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Password Modal -->
+  <div id="password-modal">
+    <div class="modal-content">
+      <h3>Enter Password</h3>
+      <input type="text" class="pin-input" maxlength="4" placeholder="****" autofocus>
+    </div>
+  </div>
+
+  <!-- Image Fullscreen Modal -->
+  <div id="img-modal" class="img-modal">
+    <img class="img-modal-content" id="img-modal-img">
+  </div>
+
+  <script>
+    const mapContainer = document.querySelector('.map-container');
+    const mapWrapper = document.getElementById('map-wrapper');
+    const mapImg = document.getElementById('world-map-img');
+
+    // 悬停任一点时暂停所有动画并显示标签
+    // 注意：现在 marker 在 mapWrapper 内，需要从 wrapper 中查找
+    mapWrapper.querySelectorAll('.marker').forEach(m => {
+      // Desktop Hover Logic
+      m.addEventListener('mouseenter', () => {
+        if (window.innerWidth > 768) mapContainer.classList.add('paused');
+      });
+      m.addEventListener('mouseleave', () => {
+        if (window.innerWidth > 768) mapContainer.classList.remove('paused');
+      });
+
+      // Mobile Click Logic
+      m.addEventListener('click', (e) => {
+        // Only for mobile
+        if (window.innerWidth <= 768) {
+           e.stopPropagation(); // 阻止冒泡到 mapContainer 或 document
+           
+           // 如果当前已激活，则关闭它（可选交互，目前需求是点击其他区域消失，所以这里可以只负责打开）
+           // 这里我们实现：点击即激活，互斥（点A时B灭）
+           
+           // 先移除所有点的 active
+           mapWrapper.querySelectorAll('.marker').forEach(marker => marker.classList.remove('active'));
+           
+           // 激活当前点
+           m.classList.add('active');
+        }
+      });
+    });
+
+    // Mobile: Click outside to clear active markers
+    document.addEventListener('click', (e) => {
+        if (window.innerWidth <= 768) {
+            // 如果点击的不是 marker 及其子元素
+            if (!e.target.closest('.marker')) {
+                mapWrapper.querySelectorAll('.marker').forEach(marker => marker.classList.remove('active'));
+            }
+        }
+    });
+
+    // 核心修复逻辑：动态同步 wrapper 尺寸与图片实际渲染尺寸
+    function syncMapWrapperSize() {
+      if (!mapImg || !mapWrapper) return;
+      
+      // 1. 获取图片实际渲染的尺寸
+      // 这里的 clientWidth/Height 是图片在 object-fit: contain 下的真实占据尺寸吗？
+      // 不一定，img 标签即使设置 object-fit，其 clientWidth 往往还是填满容器。
+      // 所以我们需要通过计算比例来手动推算。
+
+      // 容器尺寸
+      const containerW = mapContainer.clientWidth;
+      const containerH = mapContainer.clientHeight;
+      const containerRatio = containerW / containerH;
+
+      // 图片原始尺寸
+      const naturalW = mapImg.naturalWidth;
+      const naturalH = mapImg.naturalHeight;
+      const imgRatio = naturalW / naturalH;
+
+      if (!naturalW || !naturalH) return; // 图片未加载完成
+
+      let renderW, renderH;
+
+      if (containerRatio > imgRatio) {
+        // 容器更宽，图片高度撑满，宽度自适应
+        renderH = containerH;
+        renderW = renderH * imgRatio;
+      } else {
+        // 容器更高（或相等），图片宽度撑满，高度自适应
+        renderW = containerW;
+        renderH = renderW / imgRatio;
+      }
+
+      // 2. 设置 wrapper 尺寸
+      mapWrapper.style.width = `${renderW}px`;
+      mapWrapper.style.height = `${renderH}px`;
+    }
+
+    // 监听加载和缩放
+    window.addEventListener('resize', syncMapWrapperSize);
+    mapImg.addEventListener('load', syncMapWrapperSize);
+    // 立即尝试一次（防止已缓存）
+    if (mapImg.complete) syncMapWrapperSize();
+
+    // Blur Unlock Logic
+    const expList = document.querySelector('.experience-list');
+    const blurAreas = document.querySelectorAll('.blur-protected');
+    const modal = document.getElementById('password-modal');
+    const input = document.querySelector('.pin-input');
+
+    // Click on blurred area triggers modal
+    blurAreas.forEach(area => {
+      area.addEventListener('click', () => {
+        if (area.classList.contains('is-blurred')) {
+          modal.classList.add('active');
+          input.value = '';
+          input.focus();
+        }
+      });
+    });
+
+    // Input logic
+    input.addEventListener('input', (e) => {
+      const val = e.target.value;
+      if (val.length === 4) {
+        if (val.toLowerCase() === 'hiaa') {
+          // Correct: Unlock
+          modal.classList.remove('active');
+          expList.classList.remove('locked');
+          blurAreas.forEach(area => {
+            area.classList.remove('is-blurred');
+            area.style.pointerEvents = 'none'; // Disable click to prevent re-triggering, allow text selection
+            setTimeout(() => area.style.pointerEvents = 'auto', 100); // Or just keep auto but remove is-blurred check
+          });
+        } else {
+          // Wrong: Clear
+          input.value = '';
+          input.classList.add('error'); // Optional shake animation could be added
+        }
+      }
+    });
+
+    // Close modal if clicking outside
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.classList.remove('active');
+      }
+    });
+
+    // Image Modal Logic
+    const imgModal = document.getElementById('img-modal');
+    const imgModalImg = document.getElementById('img-modal-img');
+
+    function openImageModal(img) {
+      imgModal.classList.add('active');
+      imgModalImg.src = img.src;
+    }
+
+    imgModal.addEventListener('click', () => {
+      imgModal.classList.remove('active');
+    });
+
+    // Sync image width with 'PART TIME' tag
+    window.addEventListener('load', () => {
+      const sidebarImg = document.querySelector('.sidebar-img');
+      if (sidebarImg) {
+        // Find the sibling tag in the same container
+        const container = sidebarImg.closest('.col-left');
+        const tag = container.querySelector('.tag');
+        if (tag) {
+          // Set image width to match tag width
+          sidebarImg.style.width = tag.offsetWidth + 'px';
+        }
+      }
+    });
+
+    // Mobile Scroll Lyrics Effect
+    function handleScrollLyrics() {
+      // Check if mobile (using 768px as breakpoint)
+      if (window.innerWidth > 768) {
+          // Reset opacity if switching to desktop
+          document.querySelectorAll('.job-item').forEach(el => {
+              el.style.opacity = '';
+              el.classList.remove('scroll-active');
+          });
+          return;
+      }
+
+      const triggerLine = window.innerHeight * 0.33;
+      const items = document.querySelectorAll('.job-item');
+      
+      let activeItem = null;
+      let minDist = Infinity;
+
+      items.forEach(item => {
+        const rect = item.getBoundingClientRect();
+        
+        // Calculate distance to the trigger line
+        // If the line is inside the item, distance is 0
+        let dist = 0;
+        if (rect.top > triggerLine) {
+            dist = rect.top - triggerLine;
+        } else if (rect.bottom < triggerLine) {
+            dist = triggerLine - rect.bottom;
+        } else {
+            dist = 0; // Inside
+        }
+        
+        if (dist < minDist) {
+            minDist = dist;
+            activeItem = item;
+        }
+      });
+
+      items.forEach(item => {
+          if (item === activeItem) {
+              item.classList.add('scroll-active');
+          } else {
+              item.classList.remove('scroll-active');
+          }
+      });
+    }
+
+    window.addEventListener('scroll', handleScrollLyrics);
+    window.addEventListener('resize', handleScrollLyrics);
+    // Init on load
+    window.addEventListener('load', handleScrollLyrics);
+  </script>
+</body>
+</html>
