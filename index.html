@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Home</title>
+  <title>AA's Sketchbook</title>
 
   <!-- Fonts: English Special Elite, Footer/Nav AR One Sans, Chinese Noto Sans HK as fallback for 思源黑体香港 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -120,6 +120,20 @@
       100% {
         opacity: 1;
         transform: translateY(0) skewY(0) rotate(0deg);
+      }
+    }
+
+    /* 风吹散消失动画 */
+    @keyframes driftAway {
+      0% {
+        opacity: 1;
+        transform: translate(0, 0) rotate(0deg);
+        filter: blur(0);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(30px, -30px) rotate(15deg);
+        filter: blur(3px);
       }
     }
 
@@ -675,7 +689,7 @@
         // 定义目标元素及其基础延迟
         const targets = [
             { sel: '.intro-top h1', baseDelay: 0.1 },
-            { sel: '.intro-top h2', baseDelay: 0.4 }, // 稍微晚一点
+            { sel: '.intro-top h2', baseDelay: 0.2 }, // 稍微晚一点
             { sel: '.intro-cta p', baseDelay: 2 }   // 晚很多
         ];
 
@@ -696,7 +710,17 @@
                     const indexDelay = i * 0.02;
                     const totalDelay = target.baseDelay + randomDelay + indexDelay;
                     
-                    html += `<span class="char" style="animation-delay: ${totalDelay}s">${char}</span>`;
+                    if (target.sel === '.intro-cta p') {
+                        // 针对 CTA 文字添加消失动画
+                        // 消失延迟 = 入场完成时间(totalDelay + 1s) + 5s等待 + 随机扰动
+                        // 这里的 1s 是 floatUpChar 的 duration
+                        const vanishDelay = totalDelay + 1 + 3 + Math.random() * 0.5;
+                        
+                        // 同时应用两个动画，逗号分隔
+                        html += `<span class="char" style="animation-name: floatUpChar, driftAway; animation-duration: 1s, 2s; animation-delay: ${totalDelay}s, ${vanishDelay}s; animation-fill-mode: forwards, forwards;">${char}</span>`;
+                    } else {
+                        html += `<span class="char" style="animation-delay: ${totalDelay}s">${char}</span>`;
+                    }
                 }
                 
                 // 替换原始内容

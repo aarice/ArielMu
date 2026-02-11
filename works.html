@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Works</title>
+  <title>AA's Portfolio</title>
   
   <!-- 引入字体 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -358,7 +358,7 @@
       transform: translate(-50%, -50%);
       z-index: 20;
       opacity: 0; /* 初始不可见 */
-      transition: opacity 0.3s ease; /* 简单渐显 */
+      transition: opacity 0.1s ease; /* 加快图钉出现速度 */
     }
     
     /* 图钉钉入状态 */
@@ -379,10 +379,11 @@
     
     .gallery-item.visual-display:hover {
       z-index: 50 !important; /* 悬停时置顶 */
+      transform: rotate(var(--rotation)) translateY(-15px) scale(1.05); /* 上浮效果 */
     }
     
     .gallery-item.visual-display:hover img {
-      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4); /* 加深阴影 */
     }
     
     .gallery-item.visual-display .pin img {
@@ -1244,6 +1245,7 @@
     let scaleFactor = 1; // 缩放比例
     let currentDisplayedImageId = -1; // 当前显示的图片ID
     let isMobileMode = false; // 移动端标记
+    let activeFlyingItem = null; // 当前正在飞行的图片（Visual Display）
 
     // 图片路径数组
     const workImages = []; // Graphic Design 图片
@@ -1257,6 +1259,7 @@
     for (let i = 1; i <= 17; i++) {
       displayImages.push(`./images/displayimg (${i}).png`);
     }
+    displayImages.push(`./images/displayimg (18).jpg`);
     // 图钉图片路径（根据实际文件名）
     const pinFiles = [
       'Banana-2026-02-05-01-03-24 1.png',
@@ -1974,6 +1977,9 @@
           
           const rotation = Math.random() * 30 - 15; // 增加旋转角度 -15 到 +15 度
           
+          // 设置 CSS 变量用于 hover 动画
+          item.style.setProperty('--rotation', rotation + 'deg');
+          
           // 保存最终位置到 dataset
           item.dataset.finalX = bestX;
           item.dataset.finalY = bestY;
@@ -2080,7 +2086,7 @@
             // 增加 duration 到 1.2s
             item.style.transition = 'transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1), left 1.2s cubic-bezier(0.2, 0.8, 0.2, 1), top 1.2s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.8s ease';
             
-            item.style.transform = `rotate(${finalRot}deg)`;
+            item.style.transform = `rotate(var(--rotation))`;
             item.style.opacity = '1'; // 渐显
             
             if (!isNaN(finalX) && !isNaN(finalY)) {
@@ -2089,15 +2095,16 @@
             }
             
             // 3. 落位后图钉渐显
+            // 图片动画时长 1.2s，我们在 0.8s 时就开始显示图钉，让其感觉更紧凑
             setTimeout(() => {
                const pin = item.querySelector('.pin');
                if (pin) pin.classList.add('pinned');
-            }, 1200); // 等待图片到位
+            }, 800); // 提前到 800ms
             
             // 动画完成后，移除 left/top 的 transition
             setTimeout(() => {
                 item.style.transition = 'transform 0.3s ease, opacity 0.5s ease, box-shadow 0.3s ease';
-            }, 1500);
+            }, 1200);
             
           }, delay);
         });
@@ -2849,33 +2856,89 @@
            openModal(imgPath);
          }, 500);
       } else if (type === 'visual') {
-         // Visual Display: 手动操作 transform 以保留 rotation
-         const rot = parseFloat(item.dataset.finalRot) || 0;
-         const originalTransition = item.style.transition;
+         // Visual Display: 撕下便利贴并飞向全屏效果 (Clone 模式，解决遮挡问题)
          
-         // 1. 向上弹出 (Pop Up)
-         // 使用 cubic-bezier 模拟弹跳起势
-         item.style.transition = 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)';
-         // 修改：先旋转再平移，使平移沿着旋转后的局部坐标系Y轴进行，即“按图片倾斜角度向上”
-         item.style.transform = `rotate(${rot}deg) translateY(-40px)`;
-         item.style.zIndex = 100; // 临时置顶
+         // 1. 锁定交互
+         if (item.classList.contains('is-animating')) return;
+         item.classList.add('is-animating');
+         activeFlyingItem = item; // 记录原元素以便恢复
+
+         // 2. 获取位置信息
+         const rect = item.getBoundingClientRect();
+         const currentRot = parseFloat(item.dataset.finalRot) || 0;
+         
+         // 3. 创建克隆并添加到 Body (脱离原容器，避免 overflow 裁剪)
+         const clone = item.cloneNode(true);
+         document.body.appendChild(clone);
+         
+         // 4. 设置克隆初始状态 (Fixed 定位，完全重合)
+         clone.style.position = 'fixed';
+         clone.style.left = rect.left + 'px';
+         clone.style.top = rect.top + 'px';
+         clone.style.width = rect.width + 'px';
+         clone.style.height = rect.height + 'px';
+         clone.style.zIndex = '9999';
+         clone.style.margin = '0';
+         clone.style.transform = `rotate(${currentRot}deg)`; 
+         clone.style.transformOrigin = 'center center';
+         clone.style.transition = 'none'; // 禁止初始过渡
+         clone.style.pointerEvents = 'none'; // 禁止交互
+         
+         // 5. 隐藏原元素
+         item.style.opacity = '0';
+         
+         // 6. 强制重绘，确保初始状态生效
+         void clone.offsetWidth;
+         
+         // 7. 第一阶段：撕下 (Tear Off)
+         clone.style.transition = 'transform 0.4s cubic-bezier(0.6, -0.28, 0.735, 0.045)';
+         // 模拟从图钉处撕下：向下移动并增加旋转
+         clone.style.transform = `rotate(${currentRot + 10}deg) translateY(50px)`;
+         
+         // 隐藏图钉
+         const pin = clone.querySelector('.pin');
+         if (pin) {
+             pin.style.transition = 'opacity 0.3s';
+             pin.style.opacity = '0';
+         }
          
          setTimeout(() => {
-           // 2. 落回原位 (Fall Back)
-           item.style.transition = 'transform 0.25s ease-in';
-           // 保持 transform 顺序一致以确保平滑过渡
-           item.style.transform = `rotate(${rot}deg) translateY(0)`;
-           
-           setTimeout(() => {
-             // 3. 动画结束，清理状态
-             // 恢复仅有 rotate 的状态 (虽然 translateY(0) 也是一样的，但保持代码整洁)
-             item.style.transform = `rotate(${rot}deg)`; 
-             item.style.transition = originalTransition;
-             item.style.zIndex = ''; // 恢复 z-index (hover 会处理)
-             item.classList.remove('is-bouncing');
-             openModal(imgPath);
-           }, 250);
-         }, 250);
+            // 8. 第二阶段：飞向全屏 (Fly to Center)
+            
+            // 计算屏幕中心位移
+            const startCenterX = rect.left + rect.width / 2;
+            const startCenterY = rect.top + rect.height / 2;
+            const screenCenterX = window.innerWidth / 2;
+            const screenCenterY = window.innerHeight / 2;
+            
+            const deltaX = screenCenterX - startCenterX;
+            const deltaY = screenCenterY - startCenterY;
+            
+            // 计算缩放比例
+            const scaleX = (window.innerWidth * 0.85) / rect.width;
+            const scaleY = (window.innerHeight * 0.85) / rect.height;
+            const targetScale = Math.min(scaleX, scaleY);
+            
+            clone.style.transition = 'transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            // 位移到中心，复位旋转，放大
+            clone.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(${targetScale}) rotate(0deg)`;
+            
+            setTimeout(() => {
+                // 9. 打开 Modal
+                openModal(imgPath);
+                
+                // 10. 移除克隆 (Fade out)
+                clone.style.transition = 'opacity 0.1s';
+                clone.style.opacity = '0';
+                
+                setTimeout(() => {
+                    if (clone.parentNode) clone.parentNode.removeChild(clone);
+                }, 100);
+                
+                item.classList.remove('is-animating');
+            }, 600); // 等待飞行结束
+            
+         }, 400); // 等待撕下动画
       }
     }
 
@@ -3027,6 +3090,17 @@
         // 解除全局事件绑定，防止内存泄漏或干扰
         window.onmousemove = null;
         window.onmouseup = null;
+        
+        // 恢复飞行的图片
+        if (activeFlyingItem) {
+            // 简单淡入恢复
+            // 原元素一直在原地，只是隐藏了，所以直接淡入即可
+            activeFlyingItem.style.transition = 'opacity 0.5s ease';
+            activeFlyingItem.style.opacity = '1';
+            activeFlyingItem.style.zIndex = ''; 
+            
+            activeFlyingItem = null;
+        }
       }
     }
 

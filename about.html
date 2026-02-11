@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>About</title>
+  <title>About AA</title>
   
   <!-- 引入字体 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -539,6 +539,15 @@
     function draw() {
       clear(); // 使用 clear() 代替 background() 来保持透明
       
+      // 计算背景图移动偏移量 (仅桌面端)
+      let bgOffsetX = 0;
+      let bgOffsetY = 0;
+      if (!isMobileMode) {
+        // 限制最大移动范围，防止过度移动
+        bgOffsetX = constrain((mouseX - width / 2) * 0.015, -20, 20);
+        bgOffsetY = constrain((mouseY - height / 2) * 0.015, -20, 20);
+      }
+      
       // 绘制背景图 (截取中间部分适配移动端)
       if (isMobileMode && bgImg) {
         // 计算截取区域：保持高度充满，截取水平中心
@@ -558,7 +567,10 @@
         
         image(bgImg, width/2, height/2, width, height, sX, sY, sW, sH);
       } else if (bgImg) {
-        image(bgImg, width/2, height/2, width, height);
+        // 桌面端：背景图稍微放大一点，并随鼠标移动
+        // 放大 1.05 倍以确保移动时边缘不会露白
+        let bgScale = 1.05;
+        image(bgImg, width/2 + bgOffsetX, height/2 + bgOffsetY, width * bgScale, height * bgScale);
       }
 
       // --- 绘制 img4 (绝对位置，不随信封旋转，顺时针倾斜3度) ---
